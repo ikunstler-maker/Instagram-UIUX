@@ -68,7 +68,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            pointer-events: none; /* Let clicks pass through if needed, though we might need it for navigation later */
+            pointer-events: none;
         }
 
         .top-gradient {
@@ -79,14 +79,14 @@
         .bottom-gradient {
             background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
             padding: 20px 15px 15px;
-            pointer-events: auto; /* For input and buttons */
+            pointer-events: auto;
         }
 
         .progress-bar-container {
             display: flex;
             gap: 4px;
             margin-bottom: 12px;
-            margin-top: 10px; /* Safe area approx */
+            margin-top: 10px;
         }
 
         .progress-segment {
@@ -173,6 +173,8 @@
             align-items: center;
             gap: 15px;
             color: white;
+            position: relative;
+            z-index: 2;
         }
 
         .message-input-container {
@@ -208,9 +210,11 @@
             left: 15px;
             display: flex;
             flex-direction: column;
+            justify-content: flex-end;
             gap: 6px;
             pointer-events: none;
             width: 70%;
+            z-index: 1;
         }
         
         .reaction-bubble {
@@ -396,15 +400,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #1f2937; /* Dark background for preview area */
+            background-color: #1f2937;
             padding: 20px;
         }
-        
-        /* Language specific strings */
-        .lang-uk .pl-message { content: "Надіслати повідомлення..."; }
-        .lang-en .pl-message { content: "Send message..."; }
-        .lang-pl .pl-message { content: "Wyślij wiadomość..."; }
-        .lang-esar .pl-message { content: "Enviar mensaje..."; }
 
         #export-overlay {
             display: none;
@@ -445,6 +443,9 @@
         <div class="mt-4 w-64 h-2 bg-gray-700 rounded-full overflow-hidden">
             <div id="export-progress-bar" class="h-full bg-pink-500 w-0 transition-all duration-300"></div>
         </div>
+        <p class="text-yellow-400 text-sm max-w-md text-center mt-6 font-semibold bg-black bg-opacity-50 p-3 rounded">
+            ⚠️ ВАЖЛИВО: Не згортайте браузер і не перемикайте цю вкладку під час експорту, інакше відео може зависнути!
+        </p>
     </div>
 
     <!-- Hidden canvas for rendering the video export -->
@@ -513,7 +514,6 @@
                 
                 <!-- Media Layer -->
                 <div id="media-container">
-                    <!-- Default fallback image if none provided initially -->
                     <img src="image_b36ddf.jpg" class="media-item active" id="default-media" alt="Story Media">
                 </div>
 
@@ -521,7 +521,6 @@
                 <div id="ui-overlay">
                     <div class="top-gradient">
                         <div class="progress-bar-container" id="progress-container">
-                            <!-- Progress segments will be injected here -->
                             <div class="progress-segment"><div class="progress-fill" style="width: 30%;"></div></div>
                         </div>
                         
@@ -530,7 +529,7 @@
                                 <img src="image_b36ddf.jpg" id="preview-avatar" class="profile-pic" alt="Profile">
                                 <div class="user-details">
                                     <div class="username-time">
-                                        <span id="preview-username">made_by_elijah_kunstler</span>
+                                        <span id="preview-username">anastasiianapnenko</span>
                                         <span id="preview-time" class="time-text">9h</span>
                                     </div>
                                     <div id="preview-audio-container" class="audio-track">
@@ -547,6 +546,9 @@
                     </div>
 
                     <div class="bottom-gradient">
+                        <div id="reactions-container" class="reactions-container">
+                            <!-- Reactions will be spawned here -->
+                        </div>
                         <div class="bottom-bar">
                             <div class="message-input-container">
                                 <input type="text" id="preview-message-input" class="message-input" placeholder="Send message...">
@@ -555,9 +557,6 @@
                                 <i class="far fa-heart"></i>
                                 <i class="far fa-paper-plane"></i>
                             </div>
-                        </div>
-                        <div id="reactions-container" class="reactions-container">
-                            <!-- Reactions will be spawned here -->
                         </div>
                     </div>
                 </div>
@@ -587,8 +586,6 @@
             dummyBefore: 0,
             dummyAfter: 0
         };
-
-        const emojis = ['❤️', '🔥', '😂', '😮', '😢', '👏', '😍'];
 
         // DOM Elements
         const mediaUpload = document.getElementById('media-upload');
@@ -685,6 +682,14 @@
                     imgObj.src = url;
                 }
 
+                // Setup fixed comments
+                const defaultCommentsText = ['🏍️🏍️🏍️🏍️', 'Ну моя 😍', '🔥', 'Вау!'];
+                const customCommentsObj = defaultCommentsText.map(text => {
+                    return {
+                        text: text
+                    };
+                });
+
                 state.media.push({
                     type: isVideo ? 'video' : 'image',
                     src: url,
@@ -696,7 +701,8 @@
                     showAudio: true,
                     audioText: 'rudo made it, COSKO • Where Have...',
                     enableReactions: true,
-                    customComments: ['🏍️🏍️🏍️🏍️', 'Ну моя 😍', '🔥', 'Вау!'],
+                    customComments: customCommentsObj,
+                    nextCommentIdx: 0, // Keeps track of which comment to show next
                     audioSourceNode: null 
                 });
             });
@@ -721,10 +727,10 @@
                     : `<video src="${item.src}" class="media-preview" muted></video>`;
 
                 let commentsHTML = '';
-                item.customComments.forEach((comment, cIndex) => {
+                item.customComments.forEach((commentObj, cIndex) => {
                     commentsHTML += `
                         <div class="reaction-list-item">
-                            <input type="text" class="reaction-input" value="${comment}" onchange="updateComment(${index}, ${cIndex}, this.value)">
+                            <input type="text" class="reaction-input" value="${commentObj.text}" onchange="updateComment(${index}, ${cIndex}, this.value)">
                             <button class="text-red-500 hover:text-red-700 p-1" onclick="removeComment(${index}, ${cIndex})" title="Видалити"><i class="fas fa-times"></i></button>
                         </div>
                     `;
@@ -791,11 +797,13 @@
         }
 
         window.updateComment = function(mediaIndex, commentIndex, value) {
-            state.media[mediaIndex].customComments[commentIndex] = value;
+            state.media[mediaIndex].customComments[commentIndex].text = value;
         };
         
         window.addComment = function(mediaIndex) {
-            state.media[mediaIndex].customComments.push("Новий комент");
+            state.media[mediaIndex].customComments.push({
+                text: "Новий комент"
+            });
             updateMediaListUI();
         };
 
@@ -816,7 +824,7 @@
                 }
             }
             if (prop === 'showAudio') {
-                updateMediaListUI(); // Re-render to toggle disabled state of input
+                updateMediaListUI(); 
             }
         };
 
@@ -826,7 +834,6 @@
             state.media[index] = state.media[index + direction];
             state.media[index + direction] = temp;
             
-            // Adjust currentIndex to follow the moved item
             if (state.currentIndex === index) {
                 state.currentIndex = index + direction;
             } else if (state.currentIndex === index + direction) {
@@ -876,8 +883,7 @@
                     if (item.type === 'video') {
                         el = document.createElement('video');
                         el.src = item.src;
-                        // Видалено crossOrigin="anonymous", бо воно блокує локальні blob-відео в Safari/Chrome
-                        el.muted = true; // Initially muted for autoplay policies
+                        el.muted = true; 
                         el.playsInline = true;
                         el.onloadedmetadata = function() {
                             item.duration = el.duration * 1000;
@@ -925,6 +931,10 @@
             clearTimeout(storyTimer);
             clearInterval(progressInterval);
 
+            // Reset reactions for a clean slate on every new story
+            reactionsContainer.innerHTML = '';
+            state.activeCanvasReactions = [];
+
             if (state.media.length === 0) return;
 
             document.querySelectorAll('.media-item').forEach(el => {
@@ -940,6 +950,16 @@
 
             const currentMediaData = state.media[state.currentIndex];
             let duration = currentMediaData.duration || state.storyDuration;
+
+            // Start looping comments from the beginning
+            currentMediaData.nextCommentIdx = 0;
+
+            // Trigger the first comment shortly after story starts
+            setTimeout(() => {
+                if (state.media[state.currentIndex] === currentMediaData) {
+                    spawnReaction();
+                }
+            }, 500);
 
             // Update Header UI for current media
             previewTime.textContent = currentMediaData.timeValue + currentMediaData.timeUnit;
@@ -965,18 +985,15 @@
             };
 
             if (currentMediaData.type === 'video' && currentMediaEl) {
-                
-                // Set up Audio Routing for Export/Preview if not done
                 if (state.audioCtx && !currentMediaEl.dataset.audioConnected) {
                     try {
                         const source = state.audioCtx.createMediaElementSource(currentMediaEl);
-                        source.connect(state.audioDest); // To export stream
-                        source.connect(state.audioCtx.destination); // To speakers
+                        source.connect(state.audioDest); 
+                        source.connect(state.audioCtx.destination); 
                         currentMediaEl.dataset.audioConnected = 'true';
                     } catch(e) { console.log("Audio node already created for this element."); }
                 }
 
-                // If exporting, force play sound. Otherwise follow UI toggle.
                 currentMediaEl.muted = state.isExporting ? false : !enableVideoSound.checked;
                 
                 currentMediaEl.play().then(() => {
@@ -1004,13 +1021,11 @@
 
             state.currentIndex++;
             
-            // If exporting and reached the end, stop the export
             if (state.isExporting && state.currentIndex >= state.media.length) {
                 finishExport();
                 return;
             }
 
-            // Normal loop behavior
             if (state.currentIndex >= state.media.length) {
                 state.currentIndex = 0;
                 const activeMediaCount = Math.max(state.media.length, 1);
@@ -1029,51 +1044,36 @@
             const currentMediaData = state.media[state.currentIndex];
             if (!currentMediaData || !currentMediaData.enableReactions || currentMediaData.customComments.length === 0) return;
 
-            // Pick a random comment from the user's defined list for this media
-            const commentText = currentMediaData.customComments[Math.floor(Math.random() * currentMediaData.customComments.length)];
+            // Pick the next comment in the sequence
+            const commentIndex = currentMediaData.nextCommentIdx % currentMediaData.customComments.length;
+            const commentObj = currentMediaData.customComments[commentIndex];
+            currentMediaData.nextCommentIdx++;
             
-            // Generate a random ID for Pravatar to ensure a random face
-            const randomAvatarId = Math.floor(Math.random() * 70); 
-            const avatarUrl = `https://i.pravatar.cc/100?img=${randomAvatarId}`;
-            
-            // DOM Reaction (for preview)
+            // 1. Render in DOM (for Preview)
             const reactionBubble = document.createElement('div');
             reactionBubble.className = 'reaction-bubble';
             reactionBubble.innerHTML = `
-                <img src="${avatarUrl}" class="reaction-avatar">
-                <div class="reaction-content">${commentText}</div>
+                <div class="reaction-content">${commentObj.text}</div>
             `;
             reactionsContainer.appendChild(reactionBubble);
             
-            // Clean up DOM element after animation
+            // Clean up DOM element after its animation finishes
             setTimeout(() => {
                 if (reactionBubble.parentNode) reactionBubble.parentNode.removeChild(reactionBubble);
             }, 3500);
 
-            // Pre-load image for canvas and add to canvas state
-            const canvasAvatarImg = new Image();
-            canvasAvatarImg.crossOrigin = "anonymous";
-            canvasAvatarImg.onload = () => {
-                state.activeCanvasReactions.push({
-                    text: commentText,
-                    avatarImg: canvasAvatarImg,
-                    y: 1100, // Starting Y pos on Canvas (1280h)
-                    life: 0
-                });
-            };
-            canvasAvatarImg.src = avatarUrl;
+            // 2. Add to Canvas State (for Exporting)
+            state.activeCanvasReactions.push({
+                text: commentObj.text,
+                life: 0 // Track animation progression
+            });
         }
 
         function startReactions() {
             if (state.reactionsInterval) clearInterval(state.reactionsInterval);
             state.reactionsInterval = setInterval(() => {
-                // Spawn one comment every ~2 seconds
-                if (Math.random() > 0.2) spawnReaction();
-            }, 2000);
-        }
-
-        function stopReactions() {
-            if (state.reactionsInterval) clearInterval(state.reactionsInterval);
+                spawnReaction();
+            }, 1400); // Trigger a new comment every 1.4 seconds
         }
 
         recordBtn.addEventListener('click', async () => {
@@ -1087,14 +1087,12 @@
                 return;
             }
 
-            // 1. Initialize Web Audio Context on user gesture
             initAudioSystem();
 
             state.isExporting = true;
             exportOverlay.style.display = 'flex';
             exportProgressBar.style.width = '0%';
             
-            // Reset to beginning
             state.currentIndex = 0;
             const activeMediaCount = Math.max(state.media.length, 1);
             for (let i = 0; i < activeMediaCount; i++) {
@@ -1105,9 +1103,7 @@
                 }
             }
 
-            // 2. Setup Canvas Stream and Audio Stream
-            const canvasStream = exportCanvas.captureStream(30); // 30 FPS
-            
+            const canvasStream = exportCanvas.captureStream(30);
             const combinedTracks = [...canvasStream.getVideoTracks()];
             if (state.audioDest) {
                 combinedTracks.push(...state.audioDest.stream.getAudioTracks());
@@ -1115,11 +1111,9 @@
             
             const finalStream = new MediaStream(combinedTracks);
 
-            // 3. Start MediaRecorder
             try {
                 state.mediaRecorder = new MediaRecorder(finalStream, { mimeType: 'video/webm; codecs=vp9,opus' });
             } catch (e) {
-                // Fallback for Safari/others
                 state.mediaRecorder = new MediaRecorder(finalStream);
             }
             
@@ -1142,16 +1136,17 @@
                 state.isExporting = false;
                 exportOverlay.style.display = 'none';
                 
-                // Restart preview loop normally
                 state.currentIndex = 0;
                 playCurrentStory();
             };
 
             state.mediaRecorder.start();
 
-            // 4. Start Canvas Render Loop and Playback
             playCurrentStory();
-            requestAnimationFrame(renderExportFrame);
+            
+            // Запускаємо цикл рендерингу через setTimeout замість rAF, 
+            // щоб він не заморожувався повністю при втраті фокусу
+            setTimeout(renderExportFrame, 1000 / 30);
         }
 
         function finishExport() {
@@ -1163,226 +1158,206 @@
         function renderExportFrame() {
             if (!state.isExporting) return;
 
-            const w = exportCanvas.width;
-            const h = exportCanvas.height;
-            
-            // Clear
-            exportCtx.fillStyle = '#111';
-            exportCtx.fillRect(0, 0, w, h);
+            try {
+                const w = exportCanvas.width;
+                const h = exportCanvas.height;
+                
+                // Clear
+                exportCtx.fillStyle = '#111';
+                exportCtx.fillRect(0, 0, w, h);
 
-            // 1. Draw Media (Object-fit: cover)
-            const currentMediaData = state.media[state.currentIndex];
-            if (currentMediaData) {
-                let sourceEl = currentMediaData.type === 'video' 
-                    ? document.getElementById(`media-${state.currentIndex}`) 
-                    : currentMediaData.imgObj;
+                // 1. Draw Media
+                const currentMediaData = state.media[state.currentIndex];
+                if (currentMediaData) {
+                    let sourceEl = currentMediaData.type === 'video' 
+                        ? document.getElementById(`media-${state.currentIndex}`) 
+                        : currentMediaData.imgObj;
 
-                if (sourceEl) {
-                    const srcW = sourceEl.videoWidth || sourceEl.width;
-                    const srcH = sourceEl.videoHeight || sourceEl.height;
-                    
-                    if (srcW && srcH) {
-                        const canvasRatio = w / h;
-                        const imgRatio = srcW / srcH;
-                        let sX = 0, sY = 0, sW = srcW, sH = srcH;
-
-                        if (imgRatio > canvasRatio) {
-                            sW = srcH * canvasRatio;
-                            sX = (srcW - sW) / 2;
-                        } else {
-                            sH = srcW / canvasRatio;
-                            sY = (srcH - sH) / 2;
-                        }
+                    if (sourceEl) {
+                        const srcW = sourceEl.videoWidth || sourceEl.width;
+                        const srcH = sourceEl.videoHeight || sourceEl.height;
                         
-                        try {
+                        if (srcW && srcH) {
+                            const canvasRatio = w / h;
+                            const imgRatio = srcW / srcH;
+                            let sX = 0, sY = 0, sW = srcW, sH = srcH;
+
+                            if (imgRatio > canvasRatio) {
+                                sW = srcH * canvasRatio;
+                                sX = (srcW - sW) / 2;
+                            } else {
+                                sH = srcW / canvasRatio;
+                                sY = (srcH - sH) / 2;
+                            }
+                            
                             exportCtx.drawImage(sourceEl, sX, sY, sW, sH, 0, 0, w, h);
-                        } catch(e) {} // Ignore cross-origin canvas taint errors if local testing
-                    }
-                }
-            }
-
-            // 2. Draw Top & Bottom Gradients
-            const topGrad = exportCtx.createLinearGradient(0, 0, 0, 200);
-            topGrad.addColorStop(0, 'rgba(0,0,0,0.6)');
-            topGrad.addColorStop(1, 'rgba(0,0,0,0)');
-            exportCtx.fillStyle = topGrad;
-            exportCtx.fillRect(0, 0, w, 200);
-
-            const botGrad = exportCtx.createLinearGradient(0, h-250, 0, h);
-            botGrad.addColorStop(0, 'rgba(0,0,0,0)');
-            botGrad.addColorStop(1, 'rgba(0,0,0,0.8)');
-            exportCtx.fillStyle = botGrad;
-            exportCtx.fillRect(0, h-250, w, 250);
-
-            // 3. Draw Progress Bars
-            const barY = 30;
-            const barH = 4;
-            const gap = 6;
-            const activeMediaCount = Math.max(state.media.length, 1);
-            const totalBars = state.dummyBefore + activeMediaCount + state.dummyAfter;
-            const totalW = w - 40;
-            const barW = (totalW - (gap * (totalBars - 1))) / totalBars;
-            
-            for (let i = 0; i < totalBars; i++) {
-                const bx = 20 + i * (barW + gap);
-                
-                // Background segment
-                exportCtx.fillStyle = 'rgba(255,255,255,0.3)';
-                exportCtx.beginPath();
-                exportCtx.roundRect(bx, barY, barW, barH, 2);
-                exportCtx.fill();
-
-                // Fill segment
-                let fillW = 0;
-                
-                if (i < state.dummyBefore) {
-                    fillW = barW; // completed
-                } else if (i >= state.dummyBefore && i < state.dummyBefore + activeMediaCount) {
-                    const mediaIdx = i - state.dummyBefore;
-                    
-                    if (mediaIdx < state.currentIndex) fillW = barW;
-                    else if (mediaIdx === state.currentIndex) {
-                        const dur = currentMediaData ? (currentMediaData.duration || state.storyDuration) : state.storyDuration;
-                        const elapsed = Date.now() - startTime;
-                        fillW = Math.min((elapsed / dur) * barW, barW);
-                        
-                        // Update Export UI Progress
-                        if (state.media.length > 0) {
-                            const totalDur = state.media.reduce((acc, m) => acc + (m.duration || state.storyDuration), 0);
-                            const pastDur = state.media.slice(0, mediaIdx).reduce((acc, m) => acc + (m.duration || state.storyDuration), 0);
-                            const overallProgress = totalDur > 0 ? ((pastDur + elapsed) / totalDur) * 100 : 0;
-                            exportProgressBar.style.width = `${Math.min(overallProgress, 100)}%`;
                         }
                     }
                 }
+
+                // 2. Draw Top & Bottom Gradients
+                const topGrad = exportCtx.createLinearGradient(0, 0, 0, 200);
+                topGrad.addColorStop(0, 'rgba(0,0,0,0.6)');
+                topGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                exportCtx.fillStyle = topGrad;
+                exportCtx.fillRect(0, 0, w, 200);
+
+                const botGrad = exportCtx.createLinearGradient(0, h-250, 0, h);
+                botGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                botGrad.addColorStop(1, 'rgba(0,0,0,0.8)');
+                exportCtx.fillStyle = botGrad;
+                exportCtx.fillRect(0, h-250, w, 250);
+
+                // 3. Draw Progress Bars
+                const barY = 30;
+                const barH = 4;
+                const gap = 6;
+                const activeMediaCount = Math.max(state.media.length, 1);
+                const totalBars = state.dummyBefore + activeMediaCount + state.dummyAfter;
+                const totalW = w - 40;
+                const barW = (totalW - (gap * (totalBars - 1))) / totalBars;
                 
-                if (fillW > 0) {
-                    exportCtx.fillStyle = 'white';
+                for (let i = 0; i < totalBars; i++) {
+                    const bx = 20 + i * (barW + gap);
+                    
+                    exportCtx.fillStyle = 'rgba(255,255,255,0.3)';
                     exportCtx.beginPath();
-                    exportCtx.roundRect(bx, barY, fillW, barH, 2);
+                    exportCtx.roundRect(bx, barY, barW, barH, 2);
                     exportCtx.fill();
+
+                    let fillW = 0;
+                    
+                    if (i < state.dummyBefore) {
+                        fillW = barW; 
+                    } else if (i >= state.dummyBefore && i < state.dummyBefore + activeMediaCount) {
+                        const mediaIdx = i - state.dummyBefore;
+                        
+                        if (mediaIdx < state.currentIndex) fillW = barW;
+                        else if (mediaIdx === state.currentIndex) {
+                            const dur = currentMediaData ? (currentMediaData.duration || state.storyDuration) : state.storyDuration;
+                            const elapsed = Date.now() - startTime;
+                            fillW = Math.min((elapsed / dur) * barW, barW);
+                            
+                            if (state.media.length > 0) {
+                                const totalDur = state.media.reduce((acc, m) => acc + (m.duration || state.storyDuration), 0);
+                                const pastDur = state.media.slice(0, mediaIdx).reduce((acc, m) => acc + (m.duration || state.storyDuration), 0);
+                                const overallProgress = totalDur > 0 ? ((pastDur + elapsed) / totalDur) * 100 : 0;
+                                exportProgressBar.style.width = `${Math.min(overallProgress, 100)}%`;
+                            }
+                        }
+                    }
+                    
+                    if (fillW > 0) {
+                        exportCtx.fillStyle = 'white';
+                        exportCtx.beginPath();
+                        exportCtx.roundRect(bx, barY, fillW, barH, 2);
+                        exportCtx.fill();
+                    }
                 }
-            }
 
-            // 4. Draw Header
-            // Avatar
-            exportCtx.save();
-            exportCtx.beginPath();
-            exportCtx.arc(55, 75, 30, 0, Math.PI * 2);
-            exportCtx.closePath();
-            exportCtx.clip();
-            exportCtx.drawImage(currentAvatarImg, 25, 45, 60, 60);
-            exportCtx.restore();
-            
-            // Avatar Border
-            exportCtx.beginPath();
-            exportCtx.arc(55, 75, 30, 0, Math.PI * 2);
-            exportCtx.lineWidth = 1;
-            exportCtx.strokeStyle = 'rgba(255,255,255,0.3)';
-            exportCtx.stroke();
+                // 4. Draw Header
+                exportCtx.save();
+                exportCtx.beginPath();
+                exportCtx.arc(55, 75, 30, 0, Math.PI * 2);
+                exportCtx.closePath();
+                exportCtx.clip();
+                if (currentAvatarImg && currentAvatarImg.complete) {
+                    exportCtx.drawImage(currentAvatarImg, 25, 45, 60, 60);
+                }
+                exportCtx.restore();
+                
+                exportCtx.beginPath();
+                exportCtx.arc(55, 75, 30, 0, Math.PI * 2);
+                exportCtx.lineWidth = 1;
+                exportCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+                exportCtx.stroke();
 
-            // Texts
-            exportCtx.fillStyle = 'white';
-            exportCtx.font = '600 24px "Inter", sans-serif';
-            exportCtx.fillText(usernameInput.value, 100, 70);
-            
-            const userW = exportCtx.measureText(usernameInput.value).width;
-            exportCtx.fillStyle = 'rgba(255,255,255,0.8)';
-            exportCtx.font = '400 24px "Inter", sans-serif';
-            const timeTxt = currentMediaData ? (currentMediaData.timeValue + currentMediaData.timeUnit) : '9h';
-            exportCtx.fillText(timeTxt, 100 + userW + 15, 70);
-
-            if (currentMediaData && currentMediaData.showAudio) {
                 exportCtx.fillStyle = 'white';
-                exportCtx.font = '400 20px "Inter", sans-serif';
-                exportCtx.drawImage(iconMusic, 98, 85, 16, 16);
-                exportCtx.fillText(currentMediaData.audioText, 122, 100);
-            }
+                exportCtx.font = '600 24px "Inter", sans-serif';
+                exportCtx.fillText(usernameInput.value, 100, 70);
+                
+                const userW = exportCtx.measureText(usernameInput.value).width;
+                exportCtx.fillStyle = 'rgba(255,255,255,0.8)';
+                exportCtx.font = '400 24px "Inter", sans-serif';
+                const timeTxt = currentMediaData ? (currentMediaData.timeValue + currentMediaData.timeUnit) : '9h';
+                exportCtx.fillText(timeTxt, 100 + userW + 15, 70);
 
-            // 5. Draw Footer Message Box
-            exportCtx.strokeStyle = 'white';
-            exportCtx.lineWidth = 1.5;
-            exportCtx.beginPath();
-            exportCtx.roundRect(20, h - 90, w - 200, 70, 35);
-            exportCtx.stroke();
-            
-            exportCtx.fillStyle = 'rgba(255,255,255,0.8)';
-            exportCtx.font = '400 22px "Inter", sans-serif';
-            const placeholder = translations[languageSelect.value] || 'Send message...';
-            exportCtx.fillText(placeholder, 45, h - 47);
-
-            exportCtx.drawImage(iconHeart, w - 100, h - 70, 32, 32);
-            exportCtx.drawImage(iconPlane, w - 40, h - 70, 32, 32);
-
-            if (currentMediaData && currentMediaData.enableReactions) {
-                for (let i = state.activeCanvasReactions.length - 1; i >= 0; i--) {
-                    const r = state.activeCanvasReactions[i];
-                    r.life += 0.008; // Animation speed for Canvas
-                    
-                    // Logic mapped closely to CSS slideUpFade keyframes
-                    let opacity = 1;
-                    let translateY = 0;
-                    
-                    if (r.life < 0.1) {
-                        opacity = r.life / 0.1;
-                        translateY = 20 * (1 - opacity);
-                    } else if (r.life > 0.8) {
-                        opacity = 1 - ((r.life - 0.8) / 0.2);
-                        translateY = -10 - (20 * ((r.life - 0.8) / 0.2));
-                    } else {
-                        translateY = -10 * ((r.life - 0.1) / 0.7);
-                    }
-                    
-                    const drawY = r.y + translateY - (i * 60); // Stack them slightly based on index
-
-                    if (r.life > 1) {
-                        state.activeCanvasReactions.splice(i, 1);
-                        continue;
-                    }
-                    
-                    exportCtx.save();
-                    exportCtx.globalAlpha = opacity;
-                    
-                    // Bubble Background
-                    exportCtx.font = '500 20px "Inter", sans-serif';
-                    const textMetrics = exportCtx.measureText(r.text);
-                    const bubbleW = textMetrics.width + 30;
-                    const bubbleH = 40;
-                    const startX = 75; // Right next to Avatar
-                    
-                    exportCtx.fillStyle = 'rgba(30, 30, 30, 0.85)';
-                    exportCtx.beginPath();
-                    exportCtx.roundRect(startX, drawY - 20, bubbleW, bubbleH, 20);
-                    exportCtx.fill();
-                    
-                    // Bubble Text
+                if (currentMediaData && currentMediaData.showAudio) {
                     exportCtx.fillStyle = 'white';
-                    exportCtx.fillText(r.text, startX + 15, drawY + 6);
-                    
-                    // Avatar Image
-                    exportCtx.beginPath();
-                    exportCtx.arc(45, drawY, 18, 0, Math.PI * 2);
-                    exportCtx.closePath();
-                    exportCtx.clip();
-                    if (r.avatarImg) {
-                        exportCtx.drawImage(r.avatarImg, 27, drawY - 18, 36, 36);
-                    }
-                    
-                    exportCtx.restore();
-                    
-                    // Avatar Border
-                    exportCtx.save();
-                    exportCtx.globalAlpha = opacity;
-                    exportCtx.beginPath();
-                    exportCtx.arc(45, drawY, 18, 0, Math.PI * 2);
-                    exportCtx.lineWidth = 1.5;
-                    exportCtx.strokeStyle = 'rgba(255,255,255,0.3)';
-                    exportCtx.stroke();
-                    exportCtx.restore();
+                    exportCtx.font = '400 20px "Inter", sans-serif';
+                    exportCtx.drawImage(iconMusic, 98, 85, 16, 16);
+                    exportCtx.fillText(currentMediaData.audioText, 122, 100);
                 }
+
+                // 5. Draw Footer Message Box
+                exportCtx.strokeStyle = 'white';
+                exportCtx.lineWidth = 1.5;
+                exportCtx.beginPath();
+                exportCtx.roundRect(20, h - 90, w - 200, 70, 35);
+                exportCtx.stroke();
+                
+                exportCtx.fillStyle = 'rgba(255,255,255,0.8)';
+                exportCtx.font = '400 22px "Inter", sans-serif';
+                const placeholder = translations[languageSelect.value] || 'Send message...';
+                exportCtx.fillText(placeholder, 45, h - 47);
+
+                exportCtx.drawImage(iconHeart, w - 100, h - 70, 32, 32);
+                exportCtx.drawImage(iconPlane, w - 40, h - 70, 32, 32);
+
+                // 6. Draw Animated Reactions
+                if (currentMediaData && currentMediaData.enableReactions) {
+                    for (let i = state.activeCanvasReactions.length - 1; i >= 0; i--) {
+                        const r = state.activeCanvasReactions[i];
+                        r.life += 0.008; // 30fps = ~4 seconds duration
+                        
+                        const reverseIndex = state.activeCanvasReactions.length - 1 - i;
+                        let opacity = 1;
+                        let translateY = 0;
+                        
+                        if (r.life < 0.1) {
+                            opacity = r.life / 0.1;
+                            translateY = 20 * (1 - opacity);
+                        } else if (r.life > 0.8) {
+                            opacity = Math.max(0, 1 - ((r.life - 0.8) / 0.2));
+                            translateY = -10 - (20 * ((r.life - 0.8) / 0.2));
+                        } else {
+                            translateY = -10 * ((r.life - 0.1) / 0.7);
+                        }
+                        
+                        const baseY = h - 140 - (reverseIndex * 52); 
+                        const drawY = baseY + translateY;
+
+                        if (r.life > 1) {
+                            state.activeCanvasReactions.splice(i, 1);
+                            continue;
+                        }
+                        
+                        exportCtx.save();
+                        exportCtx.globalAlpha = opacity;
+                        
+                        exportCtx.font = '500 20px "Inter", sans-serif';
+                        const textMetrics = exportCtx.measureText(r.text);
+                        const bubbleW = textMetrics.width + 30;
+                        const bubbleH = 44;
+                        const startX = 20; 
+                        
+                        exportCtx.fillStyle = 'rgba(30, 30, 30, 0.85)';
+                        exportCtx.beginPath();
+                        exportCtx.roundRect(startX, drawY - 22, bubbleW, bubbleH, 22);
+                        exportCtx.fill();
+                        
+                        exportCtx.fillStyle = 'white';
+                        exportCtx.fillText(r.text, startX + 15, drawY + 6);
+                        
+                        exportCtx.restore();
+                    }
+                }
+            } catch (err) {
+                console.error("Frame render error:", err);
             }
 
-            requestAnimationFrame(renderExportFrame);
+            // Loop again at ~30 FPS
+            setTimeout(renderExportFrame, 1000 / 30);
         }
 
         // Init
