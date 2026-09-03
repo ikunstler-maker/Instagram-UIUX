@@ -553,7 +553,7 @@
                         
                         <div class="story-header">
                             <div class="profile-info">
-                                <img src="https://placehold.co/100x100/1a1a1a/ffffff?text=Ava" id="preview-avatar" class="profile-pic" alt="Profile">
+                                <img src="https://ui-avatars.com/api/?name=Ava&background=1a1a1a&color=fff&size=100" id="preview-avatar" class="profile-pic" alt="Profile" crossorigin="anonymous">
                                 <div class="user-details">
                                     <div class="username-time">
                                         <span id="preview-username">anastasiianapnenko</span>
@@ -633,15 +633,13 @@
             'green': { bg: 'linear-gradient(90deg, #11998e, #38ef7d)', color: '#11998e', c1: '#11998e', c2: '#38ef7d' }
         };
 
-        const currentAvatarImg = new Image();
-        currentAvatarImg.crossOrigin = "anonymous";
-        currentAvatarImg.src = 'https://placehold.co/100x100/1a1a1a/ffffff?text=Ava';
-        
         const svgToImg = (svgString) => { const img = new Image(); img.src = 'data:image/svg+xml;base64,' + btoa(svgString); return img; };
         const iconHeart = svgToImg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`);
         const iconPlane = svgToImg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`);
         const iconMusic = svgToImg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`);
         const iconLinkSVG = svgToImg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>`);
+        const iconEllipsis = svgToImg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><circle cx="5" cy="12" r="2.5"/><circle cx="12" cy="12" r="2.5"/><circle cx="19" cy="12" r="2.5"/></svg>`);
+        const iconClose = svgToImg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`);
 
         function truncateText(text, maxLength) {
             return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
@@ -666,23 +664,26 @@
             const file = e.target.files[0];
             if (file) {
                 const url = URL.createObjectURL(file);
-                document.getElementById('preview-avatar').src = url;
-                currentAvatarImg.src = url;
+                const ava = document.getElementById('preview-avatar');
+                ava.removeAttribute('crossorigin');
+                ava.src = url;
             }
         });
 
         window.randomizeAvatar = function() {
             const url = `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`;
-            document.getElementById('preview-avatar').src = url;
-            currentAvatarImg.src = url;
+            const ava = document.getElementById('preview-avatar');
+            ava.setAttribute('crossorigin', 'anonymous');
+            ava.src = url;
             document.getElementById('avatar-url-input').value = url;
         };
 
         window.setAvatarUrl = function() {
             const url = document.getElementById('avatar-url-input').value.trim();
             if (url) {
-                document.getElementById('preview-avatar').src = url;
-                currentAvatarImg.src = url;
+                const ava = document.getElementById('preview-avatar');
+                ava.setAttribute('crossorigin', 'anonymous');
+                ava.src = url;
             }
         };
 
@@ -731,7 +732,8 @@
                 type: isVideo ? 'video' : 'image', src: url, duration: isVideo ? 0 : 5000,
                 timeValue: '9', timeUnit: 'h', showAudio: true, audioText: 'rudo made it, COSKO...',
                 enableReactions: true, customComments: [{text: '🔥'}, {text: 'wow'}], nextCommentIdx: 0,
-                stickers: [] // New array for storing stickers
+                stickers: [],
+                imgObj: imgObj
             });
             updateMediaListUI();
             buildStoryUI();
@@ -928,7 +930,8 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                         ${sticker.text}</div>`;
                 } else if (sticker.type === 'question') {
-                    content = `<div class="sticker-question"><img src="${currentAvatarImg.src}" class="sticker-question-avatar"><div class="sticker-question-prompt">${sticker.prompt}</div><div class="sticker-question-input">Type something....</div></div>`;
+                    const avaSrc = document.getElementById('preview-avatar').src;
+                    content = `<div class="sticker-question"><img src="${avaSrc}" class="sticker-question-avatar"><div class="sticker-question-prompt">${sticker.prompt}</div><div class="sticker-question-input">Type something....</div></div>`;
                 } else if (sticker.type === 'answer') {
                     const t = answerThemes[sticker.theme];
                     content = `<div class="sticker-answer"><div class="sticker-answer-top" style="background: ${t.bg};">${sticker.prompt}</div><div class="sticker-answer-bottom" style="color: ${t.color};">${sticker.answer}</div></div>`;
@@ -1225,22 +1228,44 @@
             
             if (state.isPaused) { state.isPaused = false; updatePauseUI(); } // Resume if user left it paused
             
-            if (!state.audioCtx) { state.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); state.audioDest = state.audioCtx.createMediaStreamDestination(); }
-            if (state.audioCtx.state === 'suspended') state.audioCtx.resume();
-            
             state.isExporting = true; document.getElementById('export-overlay').style.display = 'flex';
             state.currentIndex = 0; playCurrentStory(0);
             
             const cStream = document.getElementById('export-canvas').captureStream(30);
-            const tracks = [...cStream.getVideoTracks()]; if (state.audioDest) tracks.push(...state.audioDest.stream.getAudioTracks());
-            try { state.mediaRecorder = new MediaRecorder(new MediaStream(tracks), { mimeType: 'video/webm; codecs=vp9,opus' }); } catch(e) { state.mediaRecorder = new MediaRecorder(new MediaStream(tracks)); }
+            const tracks = [...cStream.getVideoTracks()]; 
+            const stream = new MediaStream(tracks);
             
-            state.recordedChunks = []; state.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) state.recordedChunks.push(e.data); };
+            let options = { videoBitsPerSecond: 8000000 };
+            if (MediaRecorder.isTypeSupported('video/mp4')) {
+                options.mimeType = 'video/mp4';
+            } else if (MediaRecorder.isTypeSupported('video/webm; codecs=vp9,opus')) {
+                options.mimeType = 'video/webm; codecs=vp9,opus';
+            } else if (MediaRecorder.isTypeSupported('video/webm; codecs=vp8,opus')) {
+                options.mimeType = 'video/webm; codecs=vp8,opus';
+            } else {
+                options.mimeType = 'video/webm';
+            }
+            
+            try { state.mediaRecorder = new MediaRecorder(stream, options); } 
+            catch(e) { state.mediaRecorder = new MediaRecorder(stream); }
+            
+            state.recordedChunks = []; 
+            state.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) state.recordedChunks.push(e.data); };
             state.mediaRecorder.onstop = () => {
-                const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(state.recordedChunks, { type: 'video/webm' })); a.download = `story_export_${Date.now()}.webm`;
-                a.click(); state.isExporting = false; document.getElementById('export-overlay').style.display = 'none'; state.currentIndex = 0; playCurrentStory(0);
+                const mime = state.mediaRecorder.mimeType || options.mimeType || 'video/webm';
+                const ext = mime.includes('mp4') ? 'mp4' : 'webm';
+                const blobType = mime.split(';')[0];
+                const a = document.createElement('a'); 
+                a.href = URL.createObjectURL(new Blob(state.recordedChunks, { type: blobType })); 
+                a.download = `story_export_${Date.now()}.${ext}`;
+                a.click(); 
+                state.isExporting = false; 
+                document.getElementById('export-overlay').style.display = 'none'; 
+                state.currentIndex = 0; 
+                playCurrentStory(0);
             };
-            state.mediaRecorder.start(); setTimeout(renderExportFrame, 1000/30);
+            state.mediaRecorder.start(500); // Record in 500ms chunks to ensure data availability
+            setTimeout(renderExportFrame, 1000/30);
         });
 
         function finishExport() { if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') state.mediaRecorder.stop(); }
@@ -1248,6 +1273,8 @@
         function renderExportFrame() {
             if (!state.isExporting) return;
             const canvas = document.getElementById('export-canvas'); const ctx = canvas.getContext('2d'); const w = canvas.width; const h = canvas.height;
+            const storyContainer = document.getElementById('story-container');
+            const uiScale = (storyContainer && storyContainer.clientWidth > 0) ? (w / storyContainer.clientWidth) : 1.6;
             ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, h);
 
             const md = state.media[state.currentIndex];
@@ -1266,21 +1293,22 @@
                         ctx.save();
                         ctx.translate(w * s.x, h * s.y);
                         ctx.rotate(s.rotation * Math.PI / 180);
-                        ctx.scale(s.scale, s.scale);
+                        ctx.scale(s.scale * uiScale, s.scale * uiScale);
                         
                         if (s.type === 'link') {
                             ctx.font = '700 22px "Inter", sans-serif'; const tw = ctx.measureText(s.text).width; const totW = tw + 55; const bh = 46;
                             ctx.translate(-totW/2, -bh/2);
                             ctx.fillStyle = s.bgColor; ctx.beginPath(); ctx.roundRect(0, 0, totW, bh, 8); ctx.fill();
                             ctx.save();
-                            if (iconLinkSVG.complete) ctx.drawImage(iconLinkSVG, 8, 11, 24, 24);
+                            if (iconLinkSVG.complete && iconLinkSVG.naturalWidth > 0) ctx.drawImage(iconLinkSVG, 8, 11, 24, 24);
                             ctx.restore();
                             ctx.fillStyle = s.color; ctx.textAlign = 'left'; ctx.fillText(s.text, 40, 31);
                         } else if (s.type === 'question') {
                             ctx.translate(-140, -65);
                             ctx.fillStyle = 'white'; ctx.beginPath(); ctx.roundRect(0, 0, 280, 130, 16); ctx.fill();
                             ctx.save(); ctx.beginPath(); ctx.arc(140, 0, 25, 0, Math.PI*2); ctx.fillStyle = 'white'; ctx.fill(); ctx.clip();
-                            if(currentAvatarImg.complete) ctx.drawImage(currentAvatarImg, 115, -25, 50, 50);
+                            const avatarEl = document.getElementById('preview-avatar');
+                            if(avatarEl.complete && avatarEl.naturalWidth > 0) { try { ctx.drawImage(avatarEl, 115, -25, 50, 50); } catch(e){} }
                             ctx.restore(); ctx.beginPath(); ctx.arc(140, 0, 25, 0, Math.PI*2); ctx.lineWidth = 3; ctx.strokeStyle = 'white'; ctx.stroke();
                             ctx.fillStyle = 'black'; ctx.font = '600 20px "Inter", sans-serif'; ctx.textAlign = 'center'; wrapText(ctx, s.prompt, 140, 45, 240, 22);
                             ctx.fillStyle = '#e5e5ea'; ctx.beginPath(); ctx.roundRect(20, 65, 240, 45, 10); ctx.fill();
@@ -1311,15 +1339,10 @@
             const tg = ctx.createLinearGradient(0, 0, 0, 200); tg.addColorStop(0, 'rgba(0,0,0,0.6)'); tg.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = tg; ctx.fillRect(0, 0, w, 200);
             const bg = ctx.createLinearGradient(0, h-250, 0, h); bg.addColorStop(0, 'rgba(0,0,0,0)'); bg.addColorStop(1, 'rgba(0,0,0,0.8)'); ctx.fillStyle = bg; ctx.fillRect(0, h-250, w, 250);
 
-            const tb = state.dummyBefore + Math.max(state.media.length, 1) + state.dummyAfter; const bw = (w-40 - (6*(tb-1)))/tb;
-            for (let i = 0; i < tb; i++) {
-                const bx = 20 + i*(bw+6); ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.beginPath(); ctx.roundRect(bx, 30, bw, 4, 2); ctx.fill();
-                let fw = 0; if (i < state.dummyBefore) fw = bw; else if (i >= state.dummyBefore && i - state.dummyBefore < state.currentIndex) fw = bw;
-                else if (i - state.dummyBefore === state.currentIndex) fw = Math.min(((Date.now() - startTime) / (md ? (md.duration || 5000) : 5000)) * bw, bw);
-                if (fw > 0) { ctx.fillStyle = 'white'; ctx.beginPath(); ctx.roundRect(bx, 30, fw, 4, 2); ctx.fill(); }
-            }
-
-            ctx.save(); ctx.beginPath(); ctx.arc(55, 75, 30, 0, Math.PI*2); ctx.clip(); if (currentAvatarImg.complete) ctx.drawImage(currentAvatarImg, 25, 45, 60, 60); ctx.restore();
+            ctx.save(); ctx.beginPath(); ctx.arc(55, 75, 30, 0, Math.PI*2); ctx.clip(); 
+            const headerAva = document.getElementById('preview-avatar');
+            if (headerAva.complete && headerAva.naturalWidth > 0) { try { ctx.drawImage(headerAva, 25, 45, 60, 60); } catch(e){} }
+            ctx.restore();
             ctx.beginPath(); ctx.arc(55, 75, 30, 0, Math.PI*2); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.stroke();
             ctx.fillStyle = 'white'; ctx.font = '600 24px "Inter", sans-serif'; ctx.fillText(document.getElementById('username-input').value, 100, 70);
             ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = '400 24px "Inter", sans-serif'; ctx.fillText(md ? (md.timeValue + md.timeUnit) : '9h', 100 + ctx.measureText(document.getElementById('username-input').value).width + 15, 70);
@@ -1328,20 +1351,33 @@
                 ctx.fillText(truncateText(md.audioText, 32), 122, 100); 
             }
 
-            ctx.strokeStyle = 'white'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.roundRect(20, h-90, w-200, 70, 35); ctx.stroke();
-            ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = '400 22px "Inter", sans-serif'; ctx.fillText(translations[document.getElementById('language-select').value] || 'Send message...', 45, h-47);
-            ctx.drawImage(iconHeart, w-100, h-70, 32, 32); ctx.drawImage(iconPlane, w-40, h-70, 32, 32);
+            // Відмальовування трикрапки та хрестика
+            if (iconEllipsis.complete && iconEllipsis.naturalWidth > 0) ctx.drawImage(iconEllipsis, w - 100, 50, 30, 30);
+            if (iconClose.complete && iconClose.naturalWidth > 0) ctx.drawImage(iconClose, w - 50, 50, 30, 30);
 
+            // Збільшені елементи нижнього бару
+            ctx.strokeStyle = 'white'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.roundRect(20, h-100, w-200, 75, 37.5); ctx.stroke();
+            ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = '400 26px "Inter", sans-serif'; ctx.fillText(translations[document.getElementById('language-select').value] || 'Send message...', 45, h-53);
+            if (iconHeart.complete && iconHeart.naturalWidth > 0) ctx.drawImage(iconHeart, w-140, h-85, 45, 45); 
+            if (iconPlane.complete && iconPlane.naturalWidth > 0) ctx.drawImage(iconPlane, w-70, h-85, 45, 45);
+
+            // Збільшені коментарі (на ~50% більший шрифт та бульбашка)
             if (md && md.enableReactions) {
                 for (let i = state.activeCanvasReactions.length - 1; i >= 0; i--) {
                     const r = state.activeCanvasReactions[i]; r.life += 0.008;
                     let op = 1, ty = 0;
                     if (r.life < 0.1) { op = r.life/0.1; ty = 20*(1-op); } else if (r.life > 0.8) { op = Math.max(0, 1 - ((r.life-0.8)/0.2)); ty = -10 - (20*((r.life-0.8)/0.2)); } else { ty = -10*((r.life-0.1)/0.7); }
-                    const dy = r.y + ty - (i * 60); if (r.life > 1) { state.activeCanvasReactions.splice(i, 1); continue; }
                     
-                    ctx.save(); ctx.globalAlpha = op; ctx.font = '500 20px "Inter", sans-serif'; const tw = ctx.measureText(r.text).width + 30;
-                    ctx.fillStyle = 'rgba(30, 30, 30, 0.7)'; ctx.beginPath(); ctx.roundRect(20, dy-20, tw, 40, 20); ctx.fill();
-                    ctx.fillStyle = 'white'; ctx.fillText(r.text, 35, dy+6); ctx.restore();
+                    const dy = r.y + ty - (i * 85); // Більший відступ між коментарями
+                    if (r.life > 1) { state.activeCanvasReactions.splice(i, 1); continue; }
+                    
+                    ctx.save(); ctx.globalAlpha = op; ctx.font = '500 30px "Inter", sans-serif'; 
+                    const tw = ctx.measureText(r.text).width + 40;
+                    ctx.fillStyle = 'rgba(30, 30, 30, 0.7)'; ctx.beginPath(); 
+                    ctx.roundRect(20, dy-35, tw, 56, 28); 
+                    ctx.fill();
+                    ctx.fillStyle = 'white'; ctx.fillText(r.text, 40, dy+4); 
+                    ctx.restore();
                 }
             }
             setTimeout(renderExportFrame, 1000/30);
