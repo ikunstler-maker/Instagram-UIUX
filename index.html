@@ -19,6 +19,32 @@
             overflow: hidden;
         }
 
+        .app-layout {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        #control-panel {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid #e5e7eb;
+            max-width: 550px; /* Уширено лівий блок */
+            min-width: 450px;
+        }
+
+        .preview-area {
+            flex: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #1f2937;
+            padding: 20px;
+            position: relative;
+        }
+
         #story-container {
             position: relative;
             aspect-ratio: 9 / 16;
@@ -32,6 +58,7 @@
             display: flex;
             flex-direction: column;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border-radius: 8px; /* Slight rounded corners for modern look */
         }
 
         #media-container {
@@ -71,15 +98,30 @@
             pointer-events: none;
         }
 
+        /* Clickable Navigation Zones for Preview */
+        .nav-overlay {
+            position: absolute;
+            top: 15%;
+            height: 70%;
+            z-index: 11;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        #nav-left { width: 30%; left: 0; }
+        #nav-right { width: 70%; right: 0; }
+
         .top-gradient {
             background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 100%);
             padding: 10px 10px 20px;
+            z-index: 12;
+            pointer-events: none;
         }
 
         .bottom-gradient {
             background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
             padding: 20px 15px 15px;
             pointer-events: auto;
+            z-index: 12;
         }
 
         .progress-bar-container {
@@ -87,14 +129,23 @@
             gap: 4px;
             margin-bottom: 12px;
             margin-top: 10px;
+            pointer-events: auto; /* Allow clicking on progress bar */
+        }
+
+        .progress-segment-wrapper {
+            flex: 1;
+            cursor: pointer;
+            padding: 10px 0; /* Increase clickable area */
+            margin: -10px 0;
         }
 
         .progress-segment {
-            flex: 1;
+            width: 100%;
             height: 2px;
             background-color: rgba(255, 255, 255, 0.3);
             border-radius: 2px;
             overflow: hidden;
+            pointer-events: none;
         }
 
         .progress-fill {
@@ -113,6 +164,7 @@
             align-items: flex-start;
             justify-content: space-between;
             color: white;
+            pointer-events: auto;
         }
 
         .profile-info {
@@ -155,10 +207,6 @@
             gap: 4px;
             margin-top: 2px;
             font-weight: 400;
-        }
-        
-        .audio-icon {
-            font-size: 10px;
         }
 
         .header-actions {
@@ -226,17 +274,8 @@
             animation: slideUpFade 3.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
 
-        .reaction-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 1px solid rgba(255,255,255,0.2);
-            flex-shrink: 0;
-        }
-
         .reaction-content {
-            background: rgba(30, 30, 30, 0.85);
+            background: rgba(30, 30, 30, 0.7);
             color: white;
             padding: 8px 14px;
             border-radius: 20px;
@@ -252,15 +291,6 @@
             10% { opacity: 1; transform: translateY(0) scale(1); }
             80% { opacity: 1; transform: translateY(-10px); }
             100% { opacity: 0; transform: translateY(-30px); }
-        }
-
-        #control-panel {
-            flex: 1;
-            background-color: white;
-            padding: 20px;
-            overflow-y: auto;
-            border-right: 1px solid #e5e7eb;
-            max-width: 400px;
         }
 
         .control-group {
@@ -291,7 +321,6 @@
             padding: 8px;
             border: 1px solid #d1d5db;
             border-radius: 4px;
-            margin-bottom: 10px;
             font-size: 14px;
         }
         
@@ -307,17 +336,9 @@
             transition: background-color 0.2s;
         }
         
-        .btn:hover {
-            background-color: #2563eb;
-        }
-        
-        .btn-danger {
-            background-color: #ef4444;
-        }
-        
-        .btn-danger:hover {
-            background-color: #dc2828;
-        }
+        .btn:hover { background-color: #2563eb; }
+        .btn-danger { background-color: #ef4444; }
+        .btn-danger:hover { background-color: #dc2828; }
 
         #recording-indicator {
             display: none;
@@ -358,50 +379,14 @@
             border-radius: 4px;
         }
 
-        .reaction-config-group {
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px dashed #d1d5db;
-        }
-        
         .reaction-list {
-            max-height: 120px;
+            max-height: 150px;
             overflow-y: auto;
             margin-top: 5px;
             padding: 5px;
             background: white;
             border: 1px solid #e5e7eb;
             border-radius: 4px;
-        }
-
-        .reaction-list-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 5px;
-        }
-
-        .reaction-input {
-            flex: 1;
-            padding: 4px 8px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-        
-        .app-layout {
-            display: flex;
-            width: 100%;
-            height: 100%;
-        }
-
-        .preview-area {
-            flex: 2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #1f2937;
-            padding: 20px;
         }
 
         #export-overlay {
@@ -431,11 +416,31 @@
         }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        #error-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #ef4444;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-weight: 500;
+            z-index: 10000;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #error-toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
 
     </style>
 </head>
 <body>
     
+    <div id="error-toast"><i class="fas fa-exclamation-circle mr-2"></i><span id="error-toast-msg">Помилка</span></div>
+
     <div id="export-overlay">
         <div class="spinner"></div>
         <h2 class="text-2xl font-bold mb-2">Генеруємо відео...</h2>
@@ -456,15 +461,31 @@
             <h1 class="text-2xl font-bold mb-6 text-gray-800"><i class="fab fa-instagram mr-2 text-pink-500"></i>Story Creator</h1>
             
             <div class="control-group">
-                <h3>1. Profile Info</h3>
-                <label class="input-label">Аватарка</label>
-                <input type="file" id="avatar-upload" class="input-field" accept="image/*">
-                <label class="input-label">Нікнейм</label>
-                <input type="text" id="username-input" class="input-field" value="ikunstler">
+                <h3>1. Профіль (Profile Info)</h3>
+                
+                <div class="mb-3">
+                    <label class="input-label">Аватарка (Файл або URL)</label>
+                    <div class="flex gap-2 mb-2">
+                        <input type="file" id="avatar-upload" class="input-field mb-0 flex-1" accept="image/*" title="Завантажити з пристрою">
+                        <button onclick="randomizeAvatar()" class="bg-purple-100 text-purple-600 px-3 rounded hover:bg-purple-200 transition-colors" title="Випадкова аватарка"><i class="fas fa-dice"></i></button>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="url" id="avatar-url-input" class="input-field mb-0 flex-1" placeholder="https://example.com/avatar.jpg">
+                        <button onclick="setAvatarUrl()" class="bg-gray-800 text-white px-3 rounded hover:bg-gray-700 transition-colors" title="Завантажити за URL"><i class="fas fa-link"></i></button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="input-label">Нікнейм</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="username-input" class="input-field mb-0" value="anastasiianapnenko">
+                        <button onclick="randomizeUsername()" class="bg-purple-100 text-purple-600 px-3 rounded hover:bg-purple-200 transition-colors" title="Випадковий нікнейм"><i class="fas fa-dice"></i></button>
+                    </div>
+                </div>
             </div>
 
             <div class="control-group">
-                <h3>2. Interface Language</h3>
+                <h3>2. Мова інтерфейсу (Впливає на генерацію коментарів)</h3>
                 <select id="language-select" class="input-field">
                     <option value="en" selected>English (Send message...)</option>
                     <option value="uk">Українська (Надіслати повідомлення...)</option>
@@ -474,8 +495,21 @@
             </div>
 
             <div class="control-group">
-                <h3>3. Media Files (Photos/Videos)</h3>
-                <input type="file" id="media-upload" class="input-field" accept="image/*,video/*,video/mp4,video/quicktime,video/webm" multiple>
+                <h3>3. Медіафайли (Photos/Videos)</h3>
+                
+                <label class="input-label mb-2">Завантажити з пристрою (Drag & Drop)</label>
+                <div id="drop-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-pink-500 hover:bg-pink-50 transition-colors cursor-pointer relative mb-4">
+                    <i class="fas fa-cloud-upload-alt text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-sm text-gray-500 font-medium">Натисніть або перетягніть файли сюди</p>
+                    <input type="file" id="media-upload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*,video/*" multiple>
+                </div>
+                
+                <label class="input-label mb-2">Або додати медіа за посиланням</label>
+                <div class="flex gap-2 mb-4">
+                    <input type="url" id="media-url-input" class="input-field mb-0" placeholder="https://example.com/video.mp4">
+                    <button onclick="handleUrlImport()" class="bg-gray-800 text-white px-4 rounded hover:bg-gray-700 text-sm font-medium transition-colors" title="Додати медіа"><i class="fas fa-plus"></i></button>
+                </div>
+
                 <div id="media-list" class="mt-2 text-sm text-gray-600 flex flex-col gap-2">No media added yet.</div>
             </div>
 
@@ -497,14 +531,14 @@
                 <h3>5. Global Settings</h3>
                 <div class="flex items-center">
                     <input type="checkbox" id="enable-video-sound" class="mr-2">
-                    <label for="enable-video-sound" class="text-sm font-semibold text-blue-700">Play Video Sound (Unmute all)</label>
+                    <label for="enable-video-sound" class="text-sm font-semibold text-blue-700 cursor-pointer">Play Video Sound (Unmute all)</label>
                 </div>
             </div>
 
             <div class="control-group border-red-200 bg-red-50">
                 <h3 class="text-red-700">6. Export</h3>
-                <p class="text-xs text-red-600 mb-3">Автоматично рендерить відео (9:16) разом із повним інтерфейсом та <b>звуком</b> без запиту на запис екрану.</p>
-                <button id="record-btn" class="btn btn-danger"><i class="fas fa-file-export mr-2"></i> Експортувати відео (Auto)</button>
+                <p class="text-xs text-red-600 mb-3">Автоматично рендерить відео (9:16) разом із повним інтерфейсом та <b>звуком</b>.</p>
+                <button id="record-btn" class="btn btn-danger transition-all duration-300"><i class="fas fa-file-export mr-2"></i> Експортувати відео (Auto)</button>
             </div>
         </div>
 
@@ -514,19 +548,24 @@
                 
                 <!-- Media Layer -->
                 <div id="media-container">
-                    <img src="image_b36ddf.jpg" class="media-item active" id="default-media" alt="Story Media">
+                    <img src="https://placehold.co/720x1280/1a1a1a/ffffff?text=Add+Media" class="media-item active" id="default-media" alt="Story Media">
                 </div>
 
                 <!-- UI Overlay Layer -->
                 <div id="ui-overlay">
+                    <!-- Invisible navigation zones for preview playback control -->
+                    <div id="nav-left" class="nav-overlay" title="Попереднє"></div>
+                    <div id="nav-right" class="nav-overlay" title="Наступне"></div>
+                    
                     <div class="top-gradient">
                         <div class="progress-bar-container" id="progress-container">
-                            <div class="progress-segment"><div class="progress-fill" style="width: 30%;"></div></div>
+                            <!-- Injected dynamically -->
+                            <div class="progress-segment-wrapper"><div class="progress-segment"><div class="progress-fill" style="width: 30%;"></div></div></div>
                         </div>
                         
                         <div class="story-header">
                             <div class="profile-info">
-                                <img src="image_b36ddf.jpg" id="preview-avatar" class="profile-pic" alt="Profile">
+                                <img src="https://placehold.co/100x100/1a1a1a/ffffff?text=Ava" id="preview-avatar" class="profile-pic" alt="Profile">
                                 <div class="user-details">
                                     <div class="username-time">
                                         <span id="preview-username">anastasiianapnenko</span>
@@ -574,25 +613,22 @@
             isExporting: false,
             mediaRecorder: null,
             recordedChunks: [],
-            
-            // Audio context for capturing sound silently
             audioCtx: null,
             audioDest: null,
-            
-            // Shared active floating reactions for Canvas
             activeCanvasReactions: [],
-            
-            // Dummy visual segments
             dummyBefore: 0,
             dummyAfter: 0
         };
 
         // DOM Elements
         const mediaUpload = document.getElementById('media-upload');
+        const mediaUrlInput = document.getElementById('media-url-input');
         const mediaList = document.getElementById('media-list');
+        const dropZone = document.getElementById('drop-zone');
         const dummyBeforeInput = document.getElementById('dummy-before');
         const dummyAfterInput = document.getElementById('dummy-after');
         const avatarUpload = document.getElementById('avatar-upload');
+        const avatarUrlInput = document.getElementById('avatar-url-input');
         const usernameInput = document.getElementById('username-input');
         const enableVideoSound = document.getElementById('enable-video-sound');
         const languageSelect = document.getElementById('language-select');
@@ -608,14 +644,16 @@
         const previewAudio = document.getElementById('preview-audio');
         const previewMessageInput = document.getElementById('preview-message-input');
         const reactionsContainer = document.getElementById('reactions-container');
-        const recordingIndicator = document.getElementById('recording-indicator');
         
         const exportOverlay = document.getElementById('export-overlay');
         const exportCanvas = document.getElementById('export-canvas');
         const exportCtx = exportCanvas.getContext('2d');
         const exportProgressBar = document.getElementById('export-progress-bar');
+        
+        const errorToast = document.getElementById('error-toast');
+        const errorToastMsg = document.getElementById('error-toast-msg');
 
-        // SVG Icons for Canvas Export (to render exactly as in UI)
+        // SVG Icons for Canvas Export
         const svgToImg = (svgString) => {
             const img = new Image();
             img.src = 'data:image/svg+xml;base64,' + btoa(svgString);
@@ -632,29 +670,36 @@
             'es-AR': 'Enviar mensaje...'
         };
 
-        // Cache default images for Canvas
         const defaultMediaImg = new Image();
-        defaultMediaImg.src = 'image_b36ddf.jpg';
+        defaultMediaImg.src = 'https://placehold.co/720x1280/1a1a1a/ffffff?text=Add+Media';
+        defaultMediaImg.crossOrigin = "anonymous";
         let currentAvatarImg = new Image();
-        currentAvatarImg.src = 'image_b36ddf.jpg';
+        currentAvatarImg.src = 'https://placehold.co/100x100/1a1a1a/ffffff?text=Ava';
+        currentAvatarImg.crossOrigin = "anonymous";
 
-        dummyBeforeInput.addEventListener('change', (e) => { 
-            state.dummyBefore = parseInt(e.target.value) || 0; 
-            buildStoryUI(); 
-        });
-        dummyAfterInput.addEventListener('change', (e) => { 
-            state.dummyAfter = parseInt(e.target.value) || 0; 
-            buildStoryUI(); 
-        });
+        // Lists for randomization
+        const randomUsernames = ["ikunstler", "maria_beauty", "vibe_creator", "alex.under", "kiev.life", "aesthetic_mind", "photo.grapher", "design.pro", "travel_with_john", "chill.vibes.only", "urban_explorer"];
+        const randomAudioTracks = ["Original audio - vibe", "Drake - God's Plan", "Rihanna - Diamonds (Remix)", "Trending TikTok Sound", "Lofi Hip Hop - Chill Beats", "Hans Zimmer - Interstellar Theme", "Aesthetic Music - Slowed + Reverb", "vibe check - original sound"];
+        const emojisList = ["🔥", "😍", "❤️", "😮", "😂", "👏", "🙌", "🤍", "✨", "🥹", "🏍️", "🎉", "💯", "🤯"];
 
+        function truncateText(text, maxLength) {
+            if (!text) return '';
+            return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        }
+
+        function showToast(message) {
+            errorToastMsg.textContent = message;
+            errorToast.classList.add('show');
+            setTimeout(() => errorToast.classList.remove('show'), 3000);
+        }
+
+        dummyBeforeInput.addEventListener('change', (e) => { state.dummyBefore = parseInt(e.target.value) || 0; buildStoryUI(); });
+        dummyAfterInput.addEventListener('change', (e) => { state.dummyAfter = parseInt(e.target.value) || 0; buildStoryUI(); });
         usernameInput.addEventListener('input', (e) => { previewUsername.textContent = e.target.value; });
         languageSelect.addEventListener('change', (e) => { previewMessageInput.placeholder = translations[e.target.value]; });
-
         enableVideoSound.addEventListener('change', (e) => {
             const currentMediaEl = document.getElementById(`media-${state.currentIndex}`);
-            if (currentMediaEl && currentMediaEl.tagName === 'VIDEO') {
-                currentMediaEl.muted = !e.target.checked;
-            }
+            if (currentMediaEl && currentMediaEl.tagName === 'VIDEO') currentMediaEl.muted = !e.target.checked;
         });
 
         avatarUpload.addEventListener('change', (e) => {
@@ -662,65 +707,149 @@
             if (file) {
                 const url = URL.createObjectURL(file);
                 previewAvatar.src = url;
-                currentAvatarImg.src = url; // Update canvas cache
+                currentAvatarImg.src = url;
             }
         });
 
+        window.randomizeAvatar = function() {
+            const url = `https://picsum.photos/150?random=${Math.floor(Math.random() * 10000)}`;
+            previewAvatar.src = url;
+            currentAvatarImg.crossOrigin = "anonymous";
+            currentAvatarImg.src = url;
+            avatarUrlInput.value = url;
+        };
+
+        window.setAvatarUrl = function() {
+            const url = avatarUrlInput.value.trim();
+            if (url) {
+                previewAvatar.src = url;
+                currentAvatarImg.crossOrigin = "anonymous";
+                currentAvatarImg.src = url;
+            }
+        };
+
+        window.randomizeUsername = function() {
+            const newName = randomUsernames[Math.floor(Math.random() * randomUsernames.length)];
+            usernameInput.value = newName;
+            previewUsername.textContent = newName;
+        };
+
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-pink-500', 'bg-pink-50'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('border-pink-500', 'bg-pink-50'); });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-pink-500', 'bg-pink-50');
+            if (e.dataTransfer.files.length > 0) handleMediaFiles(Array.from(e.dataTransfer.files));
+        });
         mediaUpload.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
+            handleMediaFiles(Array.from(e.target.files));
+            e.target.value = '';
+        });
+
+        function handleMediaFiles(files) {
             if (files.length === 0) return;
-
             if (state.media.length === 0) mediaContainer.innerHTML = '';
-
             files.forEach(file => {
                 const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|avi|mkv|m4v)$/i.test(file.name);
                 const url = URL.createObjectURL(file);
-                
-                let imgObj = null;
-                if (!isVideo) {
-                    imgObj = new Image();
-                    imgObj.src = url;
-                }
-
-                // Setup fixed comments
-                const defaultCommentsText = ['🏍️🏍️🏍️🏍️', 'Ну моя 😍', '🔥', 'Вау!'];
-                const customCommentsObj = defaultCommentsText.map(text => {
-                    return {
-                        text: text
-                    };
-                });
-
-                state.media.push({
-                    type: isVideo ? 'video' : 'image',
-                    src: url,
-                    file: file,
-                    imgObj: imgObj,
-                    duration: isVideo ? 0 : 5000,
-                    timeValue: '9',
-                    timeUnit: 'h',
-                    showAudio: true,
-                    audioText: 'rudo made it, COSKO • Where Have...',
-                    enableReactions: true,
-                    customComments: customCommentsObj,
-                    nextCommentIdx: 0, // Keeps track of which comment to show next
-                    audioSourceNode: null 
-                });
+                addMediaToState(isVideo, url, file);
             });
+        }
 
+        window.handleUrlImport = function() {
+            const url = mediaUrlInput.value.trim();
+            if(!url) return;
+            const isVideo = url.match(/\.(mp4|mov|webm|avi|mkv|m4v)(\?.*)?$/i);
+            if (state.media.length === 0) mediaContainer.innerHTML = '';
+            addMediaToState(isVideo, url, null);
+            mediaUrlInput.value = '';
+        };
+
+        function addMediaToState(isVideo, url, fileObj) {
+            let imgObj = null;
+            if (!isVideo) {
+                imgObj = new Image();
+                if (!url.startsWith('blob:')) imgObj.crossOrigin = "anonymous";
+                imgObj.src = url;
+            }
+            const defaultCommentsText = ['🏍️🏍️🏍️', '🔥', 'wow'];
+            const customCommentsObj = defaultCommentsText.map(text => { return { text: text }; });
+
+            state.media.push({
+                type: isVideo ? 'video' : 'image',
+                src: url,
+                file: fileObj,
+                imgObj: imgObj,
+                duration: isVideo ? 0 : 5000,
+                timeValue: '9',
+                timeUnit: 'h',
+                showAudio: true,
+                audioText: 'Trending TikTok Sound',
+                enableReactions: true,
+                customComments: customCommentsObj,
+                nextCommentIdx: 0,
+                audioSourceNode: null 
+            });
             updateMediaListUI();
             buildStoryUI();
-        });
+        }
+
+        function generateRandomCommentText() {
+            const lang = languageSelect.value; // Get current UI language
+            
+            // English bases (ALWAYS INCLUDED)
+            let bases = ['wow', 'cool', 'omg', 'insane', 'love this', 'fire', 'dope', 'crazy', 'perfect', 'amazing', 'so good', 'vibes'];
+            
+            // Add UI language bases
+            if (lang === 'uk') {
+                bases = bases.concat(['круто', 'уау', 'та ну нафіг', 'це серйозно', 'хочу так само', 'агонь', 'шок', 'краса', 'неймовірно', 'капець']);
+            } else if (lang === 'pl') {
+                bases = bases.concat(['super', 'ale czad', 'niesamowite', 'chcę to', 'mega', 'pięknie']);
+            } else if (lang === 'es-AR') {
+                bases = bases.concat(['zarpado', 'tremendo', 're piola', 'increíble', 'me vuelvo loco', 'hermoso']);
+            }
+            
+            // 25% chance to just return 1-4 emojis
+            if (Math.random() < 0.25) {
+                let res = "";
+                let count = Math.floor(Math.random() * 4) + 1;
+                for(let i=0; i<count; i++) res += emojisList[Math.floor(Math.random()*emojisList.length)];
+                return res;
+            }
+            
+            let text = bases[Math.floor(Math.random() * bases.length)];
+            
+            // Typos / Duplications (20% chance)
+            if (Math.random() < 0.2) {
+                const lastChar = text.slice(-1);
+                if (/[a-zA-Zа-яА-Я]/.test(lastChar)) {
+                    text += lastChar.repeat(Math.floor(Math.random()*3)+1);
+                }
+            }
+            
+            // Punctuation (30% chance)
+            if (Math.random() < 0.3) {
+                text += Math.random() < 0.5 ? "?" : "!";
+                if (Math.random() < 0.3) text += "??";
+            }
+            
+            // Emojis appended (70% chance)
+            if (Math.random() < 0.7) {
+                text += ' ' + Array(Math.floor(Math.random()*3)+1).fill(0).map(() => emojisList[Math.floor(Math.random()*emojisList.length)]).join('');
+            }
+            
+            return text;
+        }
 
         function updateMediaListUI() {
             if (state.media.length === 0) {
                 mediaList.innerHTML = 'No media added yet.';
                 return;
             }
-
             mediaList.innerHTML = '';
             state.media.forEach((item, index) => {
                 const div = document.createElement('div');
-                div.className = 'media-list-item flex-col items-start gap-2';
+                div.className = 'media-list-item flex-col items-start gap-2 border shadow-sm p-3';
                 
                 let previewHTML = item.type === 'image' 
                     ? `<img src="${item.src}" class="media-preview" alt="preview">`
@@ -729,62 +858,56 @@
                 let commentsHTML = '';
                 item.customComments.forEach((commentObj, cIndex) => {
                     commentsHTML += `
-                        <div class="reaction-list-item">
-                            <input type="text" class="reaction-input" value="${commentObj.text}" onchange="updateComment(${index}, ${cIndex}, this.value)">
-                            <button class="text-red-500 hover:text-red-700 p-1" onclick="removeComment(${index}, ${cIndex})" title="Видалити"><i class="fas fa-times"></i></button>
+                        <div class="reaction-list-item flex gap-1 w-full">
+                            <input type="text" class="reaction-input flex-1" value="${commentObj.text}" onchange="updateComment(${index}, ${cIndex}, this.value)">
+                            <button class="bg-purple-100 text-purple-600 px-2 py-1 rounded hover:bg-purple-200 transition-colors" onclick="randomizeComment(${index}, ${cIndex})" title="Випадковий коментар"><i class="fas fa-dice"></i></button>
+                            <button class="text-red-500 hover:text-red-700 px-2 py-1" onclick="removeComment(${index}, ${cIndex})" title="Видалити"><i class="fas fa-times"></i></button>
                         </div>
                     `;
                 });
 
                 div.innerHTML = `
-                    <div class="flex items-center justify-between w-full mb-1">
-                        <div class="flex items-center gap-2">
+                    <div class="flex items-center justify-between w-full mb-2 border-b pb-2">
+                        <div class="flex items-center gap-3">
                             ${previewHTML}
-                            <span class="font-semibold text-sm">Частина ${index + 1} (${item.type})</span>
+                            <span class="font-semibold text-sm">Слайд ${index + 1} (${item.type})</span>
                         </div>
                         <div class="flex items-center gap-1">
-                            <button class="text-blue-500 hover:text-blue-700 p-1" onclick="moveMedia(${index}, -1)" ${index === 0 ? 'disabled class="opacity-30 cursor-not-allowed"' : ''} title="Вгору">
-                                <i class="fas fa-arrow-up"></i>
-                            </button>
-                            <button class="text-blue-500 hover:text-blue-700 p-1" onclick="moveMedia(${index}, 1)" ${index === state.media.length - 1 ? 'disabled class="opacity-30 cursor-not-allowed"' : ''} title="Вниз">
-                                <i class="fas fa-arrow-down"></i>
-                            </button>
-                            <button class="text-red-500 hover:text-red-700 p-1 ml-2" onclick="removeMedia(${index})" title="Видалити">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            <button class="text-blue-500 hover:text-blue-700 p-2 bg-blue-50 rounded" onclick="moveMedia(${index}, -1)" ${index === 0 ? 'disabled class="opacity-30"' : ''} title="Вгору"><i class="fas fa-arrow-up"></i></button>
+                            <button class="text-blue-500 hover:text-blue-700 p-2 bg-blue-50 rounded" onclick="moveMedia(${index}, 1)" ${index === state.media.length - 1 ? 'disabled class="opacity-30"' : ''} title="Вниз"><i class="fas fa-arrow-down"></i></button>
+                            <button class="text-red-500 hover:text-red-700 p-2 ml-2 bg-red-50 rounded" onclick="removeMedia(${index})" title="Видалити"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-1 gap-2 w-full text-xs bg-gray-50 p-2 rounded border border-gray-200">
+                    <div class="flex flex-col gap-3 w-full text-sm">
                         <div class="flex items-center gap-2">
-                            <label class="text-gray-600 font-medium whitespace-nowrap min-w-[80px]">Час:</label>
+                            <label class="text-gray-600 font-medium min-w-[80px]">Час:</label>
                             <div class="flex gap-1 w-full">
-                                <input type="number" class="border border-gray-300 rounded px-2 py-1 w-14" value="${item.timeValue}" onchange="updateMediaProp(${index}, 'timeValue', this.value)">
+                                <input type="number" class="border border-gray-300 rounded px-2 py-1 w-16" value="${item.timeValue}" onchange="updateMediaProp(${index}, 'timeValue', this.value)">
                                 <select class="border border-gray-300 rounded px-1 py-1 flex-1" onchange="updateMediaProp(${index}, 'timeUnit', this.value)">
                                     <option value="m" ${item.timeUnit === 'm' ? 'selected' : ''}>m (хв)</option>
                                     <option value="h" ${item.timeUnit === 'h' ? 'selected' : ''}>h (год)</option>
                                     <option value="d" ${item.timeUnit === 'd' ? 'selected' : ''}>d (дні)</option>
-                                    <option value="w" ${item.timeUnit === 'w' ? 'selected' : ''}>w (тиж)</option>
-                                    <option value="mo" ${item.timeUnit === 'mo' ? 'selected' : ''}>mo (міс)</option>
                                 </select>
                             </div>
                         </div>
                         
                         <div class="flex items-center gap-2">
-                            <label class="text-gray-600 font-medium whitespace-nowrap min-w-[80px]">Аудіотрек:</label>
+                            <label class="text-gray-600 font-medium min-w-[80px]">Аудіотрек:</label>
                             <div class="flex gap-1 w-full items-center">
                                 <input type="checkbox" title="Показувати аудіо" ${item.showAudio ? 'checked' : ''} onchange="updateMediaProp(${index}, 'showAudio', this.checked)">
                                 <input type="text" class="border border-gray-300 rounded px-2 py-1 flex-1" value="${item.audioText}" onchange="updateMediaProp(${index}, 'audioText', this.value)" ${!item.showAudio ? 'disabled class="opacity-50"' : ''}>
+                                <button class="bg-purple-100 text-purple-600 px-2 rounded hover:bg-purple-200 transition-colors" onclick="randomizeAudio(${index})" title="Випадковий трек" ${!item.showAudio ? 'disabled class="opacity-50"' : ''}><i class="fas fa-dice"></i></button>
                             </div>
                         </div>
 
-                        <div class="reaction-config-group">
-                            <div class="flex items-center justify-between mb-1">
+                        <div class="reaction-config-group bg-gray-50 p-2 rounded border">
+                            <div class="flex items-center justify-between mb-2">
                                 <div class="flex items-center gap-2">
                                     <input type="checkbox" id="react-${index}" ${item.enableReactions ? 'checked' : ''} onchange="updateMediaProp(${index}, 'enableReactions', this.checked)">
-                                    <label for="react-${index}" class="text-gray-600 font-medium cursor-pointer">Коментарі/Реакції</label>
+                                    <label for="react-${index}" class="text-gray-700 font-semibold cursor-pointer">Коментарі</label>
                                 </div>
-                                <button class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200" onclick="addComment(${index})" ${!item.enableReactions ? 'disabled class="opacity-50"' : ''}>+ Додати</button>
+                                <button class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200 font-bold transition-colors" onclick="addComment(${index})" ${!item.enableReactions ? 'disabled class="opacity-50"' : ''}>+ Додати</button>
                             </div>
                             <div class="reaction-list ${!item.enableReactions ? 'opacity-50 pointer-events-none' : ''}">
                                 ${commentsHTML}
@@ -796,61 +919,50 @@
             });
         }
 
-        window.updateComment = function(mediaIndex, commentIndex, value) {
-            state.media[mediaIndex].customComments[commentIndex].text = value;
-        };
-        
+        window.updateComment = function(mediaIndex, commentIndex, value) { state.media[mediaIndex].customComments[commentIndex].text = value; };
         window.addComment = function(mediaIndex) {
-            state.media[mediaIndex].customComments.push({
-                text: "Новий комент"
-            });
+            state.media[mediaIndex].customComments.push({ text: generateRandomCommentText() });
             updateMediaListUI();
         };
-
         window.removeComment = function(mediaIndex, commentIndex) {
             state.media[mediaIndex].customComments.splice(commentIndex, 1);
             updateMediaListUI();
         };
-
+        window.randomizeAudio = function(index) {
+            const newTrack = randomAudioTracks[Math.floor(Math.random() * randomAudioTracks.length)];
+            updateMediaProp(index, 'audioText', newTrack);
+        };
+        window.randomizeComment = function(mediaIndex, commentIndex) {
+            updateComment(mediaIndex, commentIndex, generateRandomCommentText());
+            updateMediaListUI();
+        };
         window.updateMediaProp = function(index, prop, value) {
             state.media[index][prop] = value;
             if (state.currentIndex === index) {
-                if (prop === 'timeValue' || prop === 'timeUnit') {
-                    previewTime.textContent = state.media[index].timeValue + state.media[index].timeUnit;
-                }
+                if (prop === 'timeValue' || prop === 'timeUnit') previewTime.textContent = state.media[index].timeValue + state.media[index].timeUnit;
                 if (prop === 'showAudio' || prop === 'audioText') {
                     previewAudioContainer.style.display = state.media[index].showAudio ? 'flex' : 'none';
-                    previewAudio.textContent = state.media[index].audioText;
+                    previewAudio.textContent = truncateText(state.media[index].audioText, 32);
                 }
             }
-            if (prop === 'showAudio') {
-                updateMediaListUI(); 
-            }
+            if (prop === 'showAudio' || prop === 'audioText') updateMediaListUI(); 
         };
-
         window.moveMedia = function(index, direction) {
             if (index + direction < 0 || index + direction >= state.media.length) return;
             const temp = state.media[index];
             state.media[index] = state.media[index + direction];
             state.media[index + direction] = temp;
-            
-            if (state.currentIndex === index) {
-                state.currentIndex = index + direction;
-            } else if (state.currentIndex === index + direction) {
-                state.currentIndex = index;
-            }
-            
+            if (state.currentIndex === index) state.currentIndex = index + direction;
+            else if (state.currentIndex === index + direction) state.currentIndex = index;
             updateMediaListUI();
             buildStoryUI();
         };
-
         window.removeMedia = function(index) {
-            URL.revokeObjectURL(state.media[index].src);
+            if (state.media[index].src.startsWith('blob:')) URL.revokeObjectURL(state.media[index].src);
             state.media.splice(index, 1);
             updateMediaListUI();
-            
             if (state.media.length === 0) {
-                mediaContainer.innerHTML = `<img src="image_b36ddf.jpg" class="media-item active" id="default-media" alt="Story Media">`;
+                mediaContainer.innerHTML = `<img src="https://placehold.co/720x1280/1a1a1a/ffffff?text=Add+Media" class="media-item active" id="default-media" alt="Story Media">`;
                 buildStoryUI();
             } else {
                 if (state.currentIndex >= state.media.length) state.currentIndex = 0;
@@ -862,6 +974,26 @@
         let progressInterval = null;
         let startTime = 0;
 
+        window.seekStory = function(visualIndex, event) {
+            if (state.isExporting) return; // Prevent seeking while exporting
+            if (visualIndex < state.dummyBefore || visualIndex >= state.dummyBefore + state.media.length) return;
+            
+            const mediaIndex = visualIndex - state.dummyBefore;
+            const segmentWrapper = event.currentTarget;
+            const rect = segmentWrapper.getBoundingClientRect();
+            // Calculate where user clicked relative to the width of the progress segment
+            const percentage = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+            
+            state.currentIndex = mediaIndex;
+            const currentMediaData = state.media[mediaIndex];
+            if (!currentMediaData) return;
+            
+            const dur = currentMediaData.duration || state.storyDuration;
+            const seekTimeMs = dur * percentage; // Time in MS to seek to
+            
+            playCurrentStory(seekTimeMs);
+        }
+
         function initAudioSystem() {
             if (!state.audioCtx) {
                 state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -872,22 +1004,20 @@
 
         function buildStoryUI() {
             if (state.media.length === 0 && mediaContainer.innerHTML === '') return;
-
             mediaContainer.innerHTML = '';
             
             if (state.media.length === 0) {
-                mediaContainer.innerHTML = `<img src="image_b36ddf.jpg" class="media-item active" id="default-media" alt="Story Media">`;
+                mediaContainer.innerHTML = `<img src="https://placehold.co/720x1280/1a1a1a/ffffff?text=Add+Media" class="media-item active" id="default-media" alt="Story Media">`;
             } else {
                 state.media.forEach((item, index) => {
                     let el;
                     if (item.type === 'video') {
                         el = document.createElement('video');
+                        if (!item.src.startsWith('blob:')) el.crossOrigin = "anonymous";
                         el.src = item.src;
                         el.muted = true; 
                         el.playsInline = true;
-                        el.onloadedmetadata = function() {
-                            item.duration = el.duration * 1000;
-                        };
+                        el.onloadedmetadata = function() { item.duration = el.duration * 1000; };
                     } else {
                         el = document.createElement('img');
                         el.src = item.src;
@@ -903,6 +1033,11 @@
             const totalSegments = state.dummyBefore + activeMediaCount + state.dummyAfter;
 
             for (let i = 0; i < totalSegments; i++) {
+                // Wrapper provides bigger hit area for seeking
+                const segmentWrapper = document.createElement('div');
+                segmentWrapper.className = 'progress-segment-wrapper';
+                segmentWrapper.onclick = (e) => seekStory(i, e);
+
                 const segment = document.createElement('div');
                 segment.className = 'progress-segment';
                 const fill = document.createElement('div');
@@ -921,17 +1056,33 @@
                 }
                 
                 segment.appendChild(fill);
-                progressContainer.appendChild(segment);
+                segmentWrapper.appendChild(segment);
+                progressContainer.appendChild(segmentWrapper);
             }
 
-            playCurrentStory();
+            // Preview Nav Setup
+            const navLeft = document.getElementById('nav-left');
+            const navRight = document.getElementById('nav-right');
+            if (navLeft) {
+                navLeft.onclick = () => {
+                    if (state.isExporting) return;
+                    const elapsed = Date.now() - startTime;
+                    if (elapsed < 1500 && state.currentIndex > 0) state.currentIndex--; // Go to previous if tapped quickly
+                    playCurrentStory(0); // Restart from beginning of selected media
+                };
+            }
+            if (navRight) {
+                navRight.onclick = () => {
+                    if (!state.isExporting) nextStory();
+                }
+            }
+
+            playCurrentStory(0);
         }
 
-        function playCurrentStory() {
+        function playCurrentStory(seekTimeMs = 0) {
             clearTimeout(storyTimer);
             clearInterval(progressInterval);
-
-            // Reset reactions for a clean slate on every new story
             reactionsContainer.innerHTML = '';
             state.activeCanvasReactions = [];
 
@@ -939,10 +1090,7 @@
 
             document.querySelectorAll('.media-item').forEach(el => {
                 el.classList.remove('active');
-                if (el.tagName === 'VIDEO') {
-                    el.pause();
-                    el.currentTime = 0;
-                }
+                if (el.tagName === 'VIDEO') { el.pause(); el.currentTime = 0; }
             });
 
             const currentMediaEl = document.getElementById(`media-${state.currentIndex}`);
@@ -951,37 +1099,30 @@
             const currentMediaData = state.media[state.currentIndex];
             let duration = currentMediaData.duration || state.storyDuration;
 
-            // Start looping comments from the beginning
             currentMediaData.nextCommentIdx = 0;
-
-            // Trigger the first comment shortly after story starts
             setTimeout(() => {
-                if (state.media[state.currentIndex] === currentMediaData) {
-                    spawnReaction();
-                }
+                if (state.media[state.currentIndex] === currentMediaData) spawnReaction();
             }, 500);
 
-            // Update Header UI for current media
             previewTime.textContent = currentMediaData.timeValue + currentMediaData.timeUnit;
             previewAudioContainer.style.display = currentMediaData.showAudio ? 'flex' : 'none';
-            previewAudio.textContent = currentMediaData.audioText;
+            previewAudio.textContent = truncateText(currentMediaData.audioText, 32);
 
             const startPlayback = (dur) => {
                 const currentVisualIndex = state.dummyBefore + state.currentIndex;
                 const currentProgressFill = document.getElementById(`progress-${currentVisualIndex}`);
                 
                 if (currentProgressFill) {
-                    startTime = Date.now();
+                    // Compensate for seekTimeMs
+                    startTime = Date.now() - seekTimeMs;
                     progressInterval = setInterval(() => {
                         const elapsed = Date.now() - startTime;
                         const percentage = Math.min((elapsed / dur) * 100, 100);
                         currentProgressFill.style.width = `${percentage}%`;
                     }, 16); 
                 }
-
-                storyTimer = setTimeout(() => {
-                    nextStory();
-                }, dur);
+                const remainingTime = Math.max(0, dur - seekTimeMs);
+                storyTimer = setTimeout(() => { nextStory(); }, remainingTime);
             };
 
             if (currentMediaData.type === 'video' && currentMediaEl) {
@@ -991,10 +1132,12 @@
                         source.connect(state.audioDest); 
                         source.connect(state.audioCtx.destination); 
                         currentMediaEl.dataset.audioConnected = 'true';
-                    } catch(e) { console.log("Audio node already created for this element."); }
+                    } catch(e) {}
                 }
-
                 currentMediaEl.muted = state.isExporting ? false : !enableVideoSound.checked;
+                
+                // Apply seek
+                currentMediaEl.currentTime = seekTimeMs / 1000;
                 
                 currentMediaEl.play().then(() => {
                     let dur = currentMediaEl.duration * 1000;
@@ -1002,7 +1145,6 @@
                     currentMediaData.duration = dur;
                     startPlayback(dur);
                 }).catch(e => {
-                    console.log("Auto-play prevented or video error", e);
                     startPlayback(5000);
                 });
             } else {
@@ -1013,67 +1155,47 @@
         function nextStory() {
             const currentVisualIndex = state.dummyBefore + state.currentIndex;
             const currentProgressFill = document.getElementById(`progress-${currentVisualIndex}`);
-            
             if (currentProgressFill) {
                 currentProgressFill.style.width = '100%';
                 currentProgressFill.classList.add('completed');
             }
-
             state.currentIndex++;
-            
             if (state.isExporting && state.currentIndex >= state.media.length) {
                 finishExport();
                 return;
             }
-
             if (state.currentIndex >= state.media.length) {
                 state.currentIndex = 0;
                 const activeMediaCount = Math.max(state.media.length, 1);
                 for (let i = 0; i < activeMediaCount; i++) {
                     const el = document.getElementById(`progress-${state.dummyBefore + i}`);
-                    if (el) {
-                        el.style.width = '0%';
-                        el.classList.remove('completed');
-                    }
+                    if (el) { el.style.width = '0%'; el.classList.remove('completed'); }
                 }
             }
-            playCurrentStory();
+            playCurrentStory(0);
         }
 
         function spawnReaction() {
             const currentMediaData = state.media[state.currentIndex];
             if (!currentMediaData || !currentMediaData.enableReactions || currentMediaData.customComments.length === 0) return;
-
-            // Pick the next comment in the sequence
             const commentIndex = currentMediaData.nextCommentIdx % currentMediaData.customComments.length;
             const commentObj = currentMediaData.customComments[commentIndex];
             currentMediaData.nextCommentIdx++;
             
-            // 1. Render in DOM (for Preview)
             const reactionBubble = document.createElement('div');
             reactionBubble.className = 'reaction-bubble';
             reactionBubble.innerHTML = `
                 <div class="reaction-content">${commentObj.text}</div>
             `;
             reactionsContainer.appendChild(reactionBubble);
-            
-            // Clean up DOM element after its animation finishes
-            setTimeout(() => {
-                if (reactionBubble.parentNode) reactionBubble.parentNode.removeChild(reactionBubble);
-            }, 3500);
+            setTimeout(() => { if (reactionBubble.parentNode) reactionBubble.parentNode.removeChild(reactionBubble); }, 3500);
 
-            // 2. Add to Canvas State (for Exporting)
-            state.activeCanvasReactions.push({
-                text: commentObj.text,
-                life: 0 // Track animation progression
-            });
+            state.activeCanvasReactions.push({ text: commentObj.text, y: 1100, life: 0 });
         }
 
         function startReactions() {
             if (state.reactionsInterval) clearInterval(state.reactionsInterval);
-            state.reactionsInterval = setInterval(() => {
-                spawnReaction();
-            }, 1400); // Trigger a new comment every 1.4 seconds
+            state.reactionsInterval = setInterval(() => { if (Math.random() > 0.2) spawnReaction(); }, 2000);
         }
 
         recordBtn.addEventListener('click', async () => {
@@ -1083,12 +1205,11 @@
 
         async function startExport() {
             if (state.media.length === 0) {
-                alert("Будь ласка, додайте хоча б один медіафайл для експорту.");
+                showToast("Додайте хоча б один медіафайл для експорту!");
                 return;
             }
 
             initAudioSystem();
-
             state.isExporting = true;
             exportOverlay.style.display = 'flex';
             exportProgressBar.style.width = '0%';
@@ -1097,147 +1218,97 @@
             const activeMediaCount = Math.max(state.media.length, 1);
             for (let i = 0; i < activeMediaCount; i++) {
                 const el = document.getElementById(`progress-${state.dummyBefore + i}`);
-                if (el) {
-                    el.style.width = '0%';
-                    el.classList.remove('completed');
-                }
+                if (el) { el.style.width = '0%'; el.classList.remove('completed'); }
             }
 
             const canvasStream = exportCanvas.captureStream(30);
             const combinedTracks = [...canvasStream.getVideoTracks()];
-            if (state.audioDest) {
-                combinedTracks.push(...state.audioDest.stream.getAudioTracks());
-            }
+            if (state.audioDest) combinedTracks.push(...state.audioDest.stream.getAudioTracks());
             
             const finalStream = new MediaStream(combinedTracks);
-
-            try {
-                state.mediaRecorder = new MediaRecorder(finalStream, { mimeType: 'video/webm; codecs=vp9,opus' });
-            } catch (e) {
-                state.mediaRecorder = new MediaRecorder(finalStream);
-            }
+            try { state.mediaRecorder = new MediaRecorder(finalStream, { mimeType: 'video/webm; codecs=vp9,opus' }); } 
+            catch (e) { state.mediaRecorder = new MediaRecorder(finalStream); }
             
             state.recordedChunks = [];
-            state.mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) state.recordedChunks.push(e.data);
-            };
-
+            state.mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) state.recordedChunks.push(e.data); };
             state.mediaRecorder.onstop = () => {
                 const blob = new Blob(state.recordedChunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = url;
-                a.download = `instagram_story_exported_${Date.now()}.webm`;
+                a.download = `story_export_${Date.now()}.webm`;
                 document.body.appendChild(a);
                 a.click();
                 setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
                 
                 state.isExporting = false;
                 exportOverlay.style.display = 'none';
-                
                 state.currentIndex = 0;
-                playCurrentStory();
+                playCurrentStory(0);
             };
 
             state.mediaRecorder.start();
-
-            playCurrentStory();
-            
-            // Запускаємо цикл рендерингу через setTimeout замість rAF, 
-            // щоб він не заморожувався повністю при втраті фокусу
+            playCurrentStory(0);
             setTimeout(renderExportFrame, 1000 / 30);
         }
 
         function finishExport() {
-            if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
-                state.mediaRecorder.stop();
-            }
+            if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') state.mediaRecorder.stop();
         }
 
         function renderExportFrame() {
             if (!state.isExporting) return;
-
             try {
                 const w = exportCanvas.width;
                 const h = exportCanvas.height;
-                
-                // Clear
                 exportCtx.fillStyle = '#111';
                 exportCtx.fillRect(0, 0, w, h);
 
-                // 1. Draw Media
                 const currentMediaData = state.media[state.currentIndex];
                 if (currentMediaData) {
-                    let sourceEl = currentMediaData.type === 'video' 
-                        ? document.getElementById(`media-${state.currentIndex}`) 
-                        : currentMediaData.imgObj;
-
+                    let sourceEl = currentMediaData.type === 'video' ? document.getElementById(`media-${state.currentIndex}`) : currentMediaData.imgObj;
                     if (sourceEl) {
                         const srcW = sourceEl.videoWidth || sourceEl.width;
                         const srcH = sourceEl.videoHeight || sourceEl.height;
-                        
                         if (srcW && srcH) {
                             const canvasRatio = w / h;
                             const imgRatio = srcW / srcH;
                             let sX = 0, sY = 0, sW = srcW, sH = srcH;
-
-                            if (imgRatio > canvasRatio) {
-                                sW = srcH * canvasRatio;
-                                sX = (srcW - sW) / 2;
-                            } else {
-                                sH = srcW / canvasRatio;
-                                sY = (srcH - sH) / 2;
-                            }
-                            
-                            exportCtx.drawImage(sourceEl, sX, sY, sW, sH, 0, 0, w, h);
+                            if (imgRatio > canvasRatio) { sW = srcH * canvasRatio; sX = (srcW - sW) / 2; } 
+                            else { sH = srcW / canvasRatio; sY = (srcH - sH) / 2; }
+                            try { exportCtx.drawImage(sourceEl, sX, sY, sW, sH, 0, 0, w, h); } catch(e) {} 
                         }
                     }
                 }
 
-                // 2. Draw Top & Bottom Gradients
                 const topGrad = exportCtx.createLinearGradient(0, 0, 0, 200);
-                topGrad.addColorStop(0, 'rgba(0,0,0,0.6)');
-                topGrad.addColorStop(1, 'rgba(0,0,0,0)');
-                exportCtx.fillStyle = topGrad;
-                exportCtx.fillRect(0, 0, w, 200);
+                topGrad.addColorStop(0, 'rgba(0,0,0,0.6)'); topGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                exportCtx.fillStyle = topGrad; exportCtx.fillRect(0, 0, w, 200);
 
                 const botGrad = exportCtx.createLinearGradient(0, h-250, 0, h);
-                botGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                botGrad.addColorStop(1, 'rgba(0,0,0,0.8)');
-                exportCtx.fillStyle = botGrad;
-                exportCtx.fillRect(0, h-250, w, 250);
+                botGrad.addColorStop(0, 'rgba(0,0,0,0)'); botGrad.addColorStop(1, 'rgba(0,0,0,0.8)');
+                exportCtx.fillStyle = botGrad; exportCtx.fillRect(0, h-250, w, 250);
 
-                // 3. Draw Progress Bars
-                const barY = 30;
-                const barH = 4;
-                const gap = 6;
+                const barY = 30; const barH = 4; const gap = 6;
                 const activeMediaCount = Math.max(state.media.length, 1);
                 const totalBars = state.dummyBefore + activeMediaCount + state.dummyAfter;
-                const totalW = w - 40;
-                const barW = (totalW - (gap * (totalBars - 1))) / totalBars;
+                const totalW = w - 40; const barW = (totalW - (gap * (totalBars - 1))) / totalBars;
                 
                 for (let i = 0; i < totalBars; i++) {
                     const bx = 20 + i * (barW + gap);
-                    
                     exportCtx.fillStyle = 'rgba(255,255,255,0.3)';
-                    exportCtx.beginPath();
-                    exportCtx.roundRect(bx, barY, barW, barH, 2);
-                    exportCtx.fill();
+                    exportCtx.beginPath(); exportCtx.roundRect(bx, barY, barW, barH, 2); exportCtx.fill();
 
                     let fillW = 0;
-                    
-                    if (i < state.dummyBefore) {
-                        fillW = barW; 
-                    } else if (i >= state.dummyBefore && i < state.dummyBefore + activeMediaCount) {
+                    if (i < state.dummyBefore) fillW = barW; 
+                    else if (i >= state.dummyBefore && i < state.dummyBefore + activeMediaCount) {
                         const mediaIdx = i - state.dummyBefore;
-                        
                         if (mediaIdx < state.currentIndex) fillW = barW;
                         else if (mediaIdx === state.currentIndex) {
                             const dur = currentMediaData ? (currentMediaData.duration || state.storyDuration) : state.storyDuration;
                             const elapsed = Date.now() - startTime;
                             fillW = Math.min((elapsed / dur) * barW, barW);
-                            
                             if (state.media.length > 0) {
                                 const totalDur = state.media.reduce((acc, m) => acc + (m.duration || state.storyDuration), 0);
                                 const pastDur = state.media.slice(0, mediaIdx).reduce((acc, m) => acc + (m.duration || state.storyDuration), 0);
@@ -1246,121 +1317,68 @@
                             }
                         }
                     }
-                    
                     if (fillW > 0) {
                         exportCtx.fillStyle = 'white';
-                        exportCtx.beginPath();
-                        exportCtx.roundRect(bx, barY, fillW, barH, 2);
-                        exportCtx.fill();
+                        exportCtx.beginPath(); exportCtx.roundRect(bx, barY, fillW, barH, 2); exportCtx.fill();
                     }
                 }
 
-                // 4. Draw Header
                 exportCtx.save();
-                exportCtx.beginPath();
-                exportCtx.arc(55, 75, 30, 0, Math.PI * 2);
-                exportCtx.closePath();
-                exportCtx.clip();
-                if (currentAvatarImg && currentAvatarImg.complete) {
-                    exportCtx.drawImage(currentAvatarImg, 25, 45, 60, 60);
-                }
+                exportCtx.beginPath(); exportCtx.arc(55, 75, 30, 0, Math.PI * 2); exportCtx.closePath(); exportCtx.clip();
+                if (currentAvatarImg && currentAvatarImg.complete) exportCtx.drawImage(currentAvatarImg, 25, 45, 60, 60);
                 exportCtx.restore();
                 
-                exportCtx.beginPath();
-                exportCtx.arc(55, 75, 30, 0, Math.PI * 2);
-                exportCtx.lineWidth = 1;
-                exportCtx.strokeStyle = 'rgba(255,255,255,0.3)';
-                exportCtx.stroke();
+                exportCtx.beginPath(); exportCtx.arc(55, 75, 30, 0, Math.PI * 2);
+                exportCtx.lineWidth = 1; exportCtx.strokeStyle = 'rgba(255,255,255,0.3)'; exportCtx.stroke();
 
-                exportCtx.fillStyle = 'white';
-                exportCtx.font = '600 24px "Inter", sans-serif';
+                exportCtx.fillStyle = 'white'; exportCtx.font = '600 24px "Inter", sans-serif';
                 exportCtx.fillText(usernameInput.value, 100, 70);
                 
                 const userW = exportCtx.measureText(usernameInput.value).width;
-                exportCtx.fillStyle = 'rgba(255,255,255,0.8)';
-                exportCtx.font = '400 24px "Inter", sans-serif';
+                exportCtx.fillStyle = 'rgba(255,255,255,0.8)'; exportCtx.font = '400 24px "Inter", sans-serif';
                 const timeTxt = currentMediaData ? (currentMediaData.timeValue + currentMediaData.timeUnit) : '9h';
                 exportCtx.fillText(timeTxt, 100 + userW + 15, 70);
 
                 if (currentMediaData && currentMediaData.showAudio) {
-                    exportCtx.fillStyle = 'white';
-                    exportCtx.font = '400 20px "Inter", sans-serif';
-                    exportCtx.drawImage(iconMusic, 98, 85, 16, 16);
-                    exportCtx.fillText(currentMediaData.audioText, 122, 100);
+                    exportCtx.fillStyle = 'white'; exportCtx.font = '400 20px "Inter", sans-serif';
+                    exportCtx.drawImage(iconMusic, 98, 85, 16, 16); exportCtx.fillText(truncateText(currentMediaData.audioText, 32), 122, 100);
                 }
 
-                // 5. Draw Footer Message Box
-                exportCtx.strokeStyle = 'white';
-                exportCtx.lineWidth = 1.5;
-                exportCtx.beginPath();
-                exportCtx.roundRect(20, h - 90, w - 200, 70, 35);
-                exportCtx.stroke();
+                exportCtx.strokeStyle = 'white'; exportCtx.lineWidth = 1.5;
+                exportCtx.beginPath(); exportCtx.roundRect(20, h - 90, w - 200, 70, 35); exportCtx.stroke();
                 
-                exportCtx.fillStyle = 'rgba(255,255,255,0.8)';
-                exportCtx.font = '400 22px "Inter", sans-serif';
-                const placeholder = translations[languageSelect.value] || 'Send message...';
-                exportCtx.fillText(placeholder, 45, h - 47);
+                exportCtx.fillStyle = 'rgba(255,255,255,0.8)'; exportCtx.font = '400 22px "Inter", sans-serif';
+                exportCtx.fillText(translations[languageSelect.value] || 'Send message...', 45, h - 47);
+                exportCtx.drawImage(iconHeart, w - 100, h - 70, 32, 32); exportCtx.drawImage(iconPlane, w - 40, h - 70, 32, 32);
 
-                exportCtx.drawImage(iconHeart, w - 100, h - 70, 32, 32);
-                exportCtx.drawImage(iconPlane, w - 40, h - 70, 32, 32);
-
-                // 6. Draw Animated Reactions
                 if (currentMediaData && currentMediaData.enableReactions) {
                     for (let i = state.activeCanvasReactions.length - 1; i >= 0; i--) {
                         const r = state.activeCanvasReactions[i];
-                        r.life += 0.008; // 30fps = ~4 seconds duration
+                        r.life += 0.008; 
+                        let opacity = 1; let translateY = 0;
+                        if (r.life < 0.1) { opacity = r.life / 0.1; translateY = 20 * (1 - opacity); } 
+                        else if (r.life > 0.8) { opacity = 1 - ((r.life - 0.8) / 0.2); translateY = -10 - (20 * ((r.life - 0.8) / 0.2)); } 
+                        else { translateY = -10 * ((r.life - 0.1) / 0.7); }
                         
-                        const reverseIndex = state.activeCanvasReactions.length - 1 - i;
-                        let opacity = 1;
-                        let translateY = 0;
+                        const drawY = r.y + translateY - (i * 60); 
+                        if (r.life > 1) { state.activeCanvasReactions.splice(i, 1); continue; }
                         
-                        if (r.life < 0.1) {
-                            opacity = r.life / 0.1;
-                            translateY = 20 * (1 - opacity);
-                        } else if (r.life > 0.8) {
-                            opacity = Math.max(0, 1 - ((r.life - 0.8) / 0.2));
-                            translateY = -10 - (20 * ((r.life - 0.8) / 0.2));
-                        } else {
-                            translateY = -10 * ((r.life - 0.1) / 0.7);
-                        }
-                        
-                        const baseY = h - 140 - (reverseIndex * 52); 
-                        const drawY = baseY + translateY;
-
-                        if (r.life > 1) {
-                            state.activeCanvasReactions.splice(i, 1);
-                            continue;
-                        }
-                        
-                        exportCtx.save();
-                        exportCtx.globalAlpha = opacity;
-                        
+                        exportCtx.save(); exportCtx.globalAlpha = opacity;
                         exportCtx.font = '500 20px "Inter", sans-serif';
                         const textMetrics = exportCtx.measureText(r.text);
-                        const bubbleW = textMetrics.width + 30;
-                        const bubbleH = 44;
-                        const startX = 20; 
+                        const bubbleW = textMetrics.width + 30; const bubbleH = 40; const startX = 20;
                         
-                        exportCtx.fillStyle = 'rgba(30, 30, 30, 0.85)';
-                        exportCtx.beginPath();
-                        exportCtx.roundRect(startX, drawY - 22, bubbleW, bubbleH, 22);
-                        exportCtx.fill();
-                        
-                        exportCtx.fillStyle = 'white';
-                        exportCtx.fillText(r.text, startX + 15, drawY + 6);
+                        exportCtx.fillStyle = 'rgba(30, 30, 30, 0.7)';
+                        exportCtx.beginPath(); exportCtx.roundRect(startX, drawY - 20, bubbleW, bubbleH, 20); exportCtx.fill();
+                        exportCtx.fillStyle = 'white'; exportCtx.fillText(r.text, startX + 15, drawY + 6);
                         
                         exportCtx.restore();
                     }
                 }
-            } catch (err) {
-                console.error("Frame render error:", err);
-            }
-
-            // Loop again at ~30 FPS
+            } catch (err) {}
             setTimeout(renderExportFrame, 1000 / 30);
         }
 
-        // Init
         startReactions();
         buildStoryUI();
 
