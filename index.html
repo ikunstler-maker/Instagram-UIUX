@@ -1339,6 +1339,33 @@
             const tg = ctx.createLinearGradient(0, 0, 0, 200); tg.addColorStop(0, 'rgba(0,0,0,0.6)'); tg.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = tg; ctx.fillRect(0, 0, w, 200);
             const bg = ctx.createLinearGradient(0, h-250, 0, h); bg.addColorStop(0, 'rgba(0,0,0,0)'); bg.addColorStop(1, 'rgba(0,0,0,0.8)'); ctx.fillStyle = bg; ctx.fillRect(0, h-250, w, 250);
 
+            // Відмальовування смуг прогресу
+            const tb = state.dummyBefore + Math.max(state.media.length, 1) + state.dummyAfter; 
+            const bw = (w - 40 - (6 * (tb - 1))) / tb;
+            for (let i = 0; i < tb; i++) {
+                const bx = 20 + i * (bw + 6); 
+                ctx.fillStyle = 'rgba(255,255,255,0.3)'; 
+                ctx.beginPath(); 
+                ctx.roundRect(bx, 30, bw, 4, 2); 
+                ctx.fill();
+                
+                let fw = 0; 
+                if (i < state.dummyBefore) {
+                    fw = bw; 
+                } else if (i >= state.dummyBefore && i - state.dummyBefore < state.currentIndex) {
+                    fw = bw;
+                } else if (i - state.dummyBefore === state.currentIndex) {
+                    fw = Math.min(((Date.now() - startTime) / (md ? (md.duration || 5000) : 5000)) * bw, bw);
+                }
+                
+                if (fw > 0) { 
+                    ctx.fillStyle = 'white'; 
+                    ctx.beginPath(); 
+                    ctx.roundRect(bx, 30, fw, 4, 2); 
+                    ctx.fill(); 
+                }
+            }
+
             ctx.save(); ctx.beginPath(); ctx.arc(55, 75, 30, 0, Math.PI*2); ctx.clip(); 
             const headerAva = document.getElementById('preview-avatar');
             if (headerAva.complete && headerAva.naturalWidth > 0) { try { ctx.drawImage(headerAva, 25, 45, 60, 60); } catch(e){} }
