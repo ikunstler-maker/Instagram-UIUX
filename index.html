@@ -425,8 +425,11 @@
         </p>
     </div>
 
-    <!-- Hidden canvas for rendering the video export -->
-    <canvas id="export-canvas" width="720" height="1280" style="display:none;"></canvas>
+    <!-- Rendering canvas for the video export. It must NOT be display:none:
+         a canvas outside the render tree can stop feeding captureStream(), which
+         results in an empty video file. Kept on-screen but visually imperceptible. -->
+    <canvas id="export-canvas" width="720" height="1280"
+            style="position:fixed; left:0; top:0; width:72px; height:128px; opacity:0.01; pointer-events:none; z-index:9998;"></canvas>
 
     <div class="app-layout">
         <div id="control-panel">
@@ -599,7 +602,8 @@
             mediaRecorder: null,
             recordedChunks: [],
             audioCtx: null,
-            audioDest: null,
+            audioMonitor: null,              // gain node feeding the speakers
+            audioSources: new Map(),         // <video> element -> MediaElementAudioSourceNode
             activeCanvasReactions: [],
             dummyBefore: 0,
             dummyAfter: 0,
@@ -655,10 +659,54 @@
         document.getElementById('dummy-after').addEventListener('change', (e) => { state.dummyAfter = parseInt(e.target.value) || 0; buildStoryUI(); });
         document.getElementById('username-input').addEventListener('input', (e) => { document.getElementById('preview-username').textContent = e.target.value; });
         document.getElementById('language-select').addEventListener('change', (e) => { document.getElementById('preview-message-input').placeholder = translations[e.target.value]; });
-        document.getElementById('enable-video-sound').addEventListener('change', (e) => {
-            const currentMediaEl = document.getElementById(`media-${state.currentIndex}`);
-            if (currentMediaEl && currentMediaEl.tagName === 'VIDEO') currentMediaEl.muted = !e.target.checked;
+        document.getElementById('enable-video-sound').addEventListener('change', () => {
+            applyMediaSound(document.getElementById(`media-${state.currentIndex}`));
         });
+
+        // --- Audio routing -------------------------------------------------------
+        // Video sound has to reach the recorder, not just the speakers, so every
+        // <video> is routed through a Web Audio graph. Once an element is routed its
+        // own .muted no longer decides what the graph outputs, therefore audibility
+        // is controlled by the monitor gain and routed elements stay unmuted.
+        function ensureAudioGraph() {
+            if (!state.audioCtx) {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) return false;
+                state.audioCtx = new AC();
+                state.audioMonitor = state.audioCtx.createGain();
+                state.audioMonitor.connect(state.audioCtx.destination);
+            }
+            if (state.audioCtx.state === 'suspended') state.audioCtx.resume();
+            return true;
+        }
+
+        function wireMediaAudio() {
+            if (!ensureAudioGraph()) return;
+            document.querySelectorAll('#media-container video').forEach(el => {
+                if (state.audioSources.has(el)) return;
+                try {
+                    const node = state.audioCtx.createMediaElementSource(el);
+                    node.connect(state.audioMonitor);
+                    state.audioSources.set(el, node);
+                    el.muted = false;
+                } catch (e) {
+                    console.warn('Could not route audio for a media element:', e);
+                }
+            });
+            updateAudioMonitor();
+        }
+
+        function updateAudioMonitor() {
+            if (!state.audioMonitor) return;
+            const audible = state.isExporting || document.getElementById('enable-video-sound').checked;
+            state.audioMonitor.gain.value = audible ? 1 : 0;
+        }
+
+        function applyMediaSound(el) {
+            if (!el || el.tagName !== 'VIDEO') return;
+            if (state.audioSources.has(el)) { el.muted = false; updateAudioMonitor(); }
+            else { el.muted = !(state.isExporting || document.getElementById('enable-video-sound').checked); }
+        }
 
         document.getElementById('avatar-upload').addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -1041,7 +1089,7 @@
             
             const currentMediaEl = document.getElementById(`media-${state.currentIndex}`);
             if (currentMediaEl && currentMediaEl.tagName === 'VIDEO') {
-                currentMediaEl.muted = !document.getElementById('enable-video-sound').checked;
+                applyMediaSound(currentMediaEl);
                 currentMediaEl.play().catch(e => console.log("Play interrupted"));
             }
             
@@ -1091,7 +1139,10 @@
                     el.src = item.src; 
                     el.muted = true; 
                     el.playsInline = true; 
-                    el.onloadedmetadata = () => item.duration = el.duration * 1000; 
+                    // A stream-recorded file can report a non-finite duration; without
+                    // this guard the story timer would be set to Infinity and an export
+                    // would never end.
+                    el.onloadedmetadata = () => { if (Number.isFinite(el.duration)) item.duration = el.duration * 1000; };
                 } else { el.src = item.src; }
                 el.className = `media-item ${index === state.currentIndex ? 'active' : ''}`; 
                 el.id = `media-${index}`;
@@ -1160,16 +1211,16 @@
             };
 
             if (md.type === 'video' && currentMediaEl) {
-                currentMediaEl.muted = state.isExporting ? false : !document.getElementById('enable-video-sound').checked;
+                applyMediaSound(currentMediaEl);
                 currentMediaEl.currentTime = seekTimeMs / 1000;
                 
                 if (!state.isPaused) {
                     currentMediaEl.play().then(() => { 
-                        let dur = currentMediaEl.duration * 1000; md.duration = dur || 5000; 
+                        let dur = Number.isFinite(currentMediaEl.duration) ? currentMediaEl.duration * 1000 : 0; md.duration = dur || 5000;
                         startPlayback(dur || 5000); 
                     }).catch(() => startPlayback(5000));
                 } else {
-                    let dur = currentMediaEl.duration * 1000; md.duration = dur || 5000; 
+                    let dur = Number.isFinite(currentMediaEl.duration) ? currentMediaEl.duration * 1000 : 0; md.duration = dur || 5000;
                     startPlayback(dur || 5000);
                 }
             } else { 
@@ -1229,49 +1280,253 @@
             if (state.isPaused) { state.isPaused = false; updatePauseUI(); } // Resume if user left it paused
             
             state.isExporting = true; document.getElementById('export-overlay').style.display = 'flex';
-            state.currentIndex = 0; playCurrentStory(0);
-            
-            const cStream = document.getElementById('export-canvas').captureStream(30);
-            const tracks = [...cStream.getVideoTracks()]; 
-            const stream = new MediaStream(tracks);
-            
-            let options = { videoBitsPerSecond: 8000000 };
-            if (MediaRecorder.isTypeSupported('video/mp4')) {
-                options.mimeType = 'video/mp4';
-            } else if (MediaRecorder.isTypeSupported('video/webm; codecs=vp9,opus')) {
-                options.mimeType = 'video/webm; codecs=vp9,opus';
-            } else if (MediaRecorder.isTypeSupported('video/webm; codecs=vp8,opus')) {
-                options.mimeType = 'video/webm; codecs=vp8,opus';
-            } else {
-                options.mimeType = 'video/webm';
+            document.getElementById('export-progress-bar').style.width = '0%';
+
+            // The click is the user gesture that lets the AudioContext start, so the
+            // graph is built here, before anything is recorded.
+            wireMediaAudio();
+
+            // Chrome reports 'video/mp4' as supported on machines whose H.264 encoder
+            // then silently emits nothing — that is how an export ends up as an empty
+            // file. Probe the candidates for real and keep the first that yields bytes.
+            const workingMime = await pickRecorderMime();
+            if (!workingMime) {
+                state.isExporting = false;
+                document.getElementById('export-overlay').style.display = 'none';
+                alert('Браузер не може закодувати відео: жоден із форматів (MP4/WebM) не віддає даних. Спробуйте оновити Chrome.');
+                return;
             }
-            
+
+            state.currentIndex = 0; playCurrentStory(0);
+
+            // The export canvas must stay in the render tree (see its inline style),
+            // otherwise captureStream can stop delivering frames mid-recording.
+            const canvasStream = document.getElementById('export-canvas').captureStream(30);
+
+            // A destination node per export: its track is stopped when the recording
+            // ends, so it must not be the shared one that later exports still need.
+            let exportAudioDest = null;
+            const exportTracks = [...canvasStream.getVideoTracks()];
+            if (state.audioCtx) {
+                exportAudioDest = state.audioCtx.createMediaStreamDestination();
+                state.audioSources.forEach(node => { try { node.connect(exportAudioDest); } catch (e) {} });
+                exportTracks.push(...exportAudioDest.stream.getAudioTracks());
+            }
+
+            const stream = new MediaStream(exportTracks);
+            const options = { mimeType: workingMime, videoBitsPerSecond: 8000000, audioBitsPerSecond: 128000 };
+
             try { state.mediaRecorder = new MediaRecorder(stream, options); } 
             catch(e) { state.mediaRecorder = new MediaRecorder(stream); }
             
-            state.recordedChunks = []; 
-            state.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) state.recordedChunks.push(e.data); };
-            state.mediaRecorder.onstop = () => {
+            state.recordedChunks = [];
+            state.mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) state.recordedChunks.push(e.data); };
+            state.mediaRecorder.onerror = e => { console.error('MediaRecorder error:', e.error || e); finishExport(); };
+            state.mediaRecorder.onstop = async () => {
                 const mime = state.mediaRecorder.mimeType || options.mimeType || 'video/webm';
                 const ext = mime.includes('mp4') ? 'mp4' : 'webm';
                 const blobType = mime.split(';')[0];
-                const a = document.createElement('a'); 
-                a.href = URL.createObjectURL(new Blob(state.recordedChunks, { type: blobType })); 
-                a.download = `story_export_${Date.now()}.${ext}`;
-                a.click(); 
-                state.isExporting = false; 
-                document.getElementById('export-overlay').style.display = 'none'; 
-                state.currentIndex = 0; 
+                const blob = new Blob(state.recordedChunks, { type: blobType });
+
+                state.isExporting = false;
+                if (exportAudioDest) {
+                    state.audioSources.forEach(node => { try { node.disconnect(exportAudioDest); } catch (e) {} });
+                }
+                stream.getTracks().forEach(t => t.stop());
+                updateAudioMonitor();
+                state.currentIndex = 0;
                 playCurrentStory(0);
+
+                if (blob.size === 0 || (await inspectVideoBlob(blob)) === 'broken') {
+                    // Either nothing was written, or the encoder emitted a file the
+                    // browser itself cannot decode (H.264 is flaky at 720x1280 and can
+                    // return a few KB of unplayable header). Blacklist the format and
+                    // re-run instead of handing the user a broken file.
+                    console.error('Export with ' + workingMime + ' is empty or undecodable (' + blob.size + ' B); retrying with another format.');
+                    failedExportMimes.add(workingMime);
+                    cachedExportMime = null;
+                    if (EXPORT_MIME_CANDIDATES.some(m => !failedExportMimes.has(m))) {
+                        // Overlay stays up so the restart reads as one continuous export.
+                        setTimeout(() => document.getElementById('record-btn').click(), 200);
+                    } else {
+                        document.getElementById('export-overlay').style.display = 'none';
+                        alert('Не вдалося записати відео: жоден із форматів (MP4/WebM) не віддав даних. Спробуйте оновити Chrome.');
+                    }
+                    return;
+                }
+
+                document.getElementById('export-overlay').style.display = 'none';
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `story_export_${Date.now()}.${ext}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 10000);
             };
             state.mediaRecorder.start(500); // Record in 500ms chunks to ensure data availability
-            setTimeout(renderExportFrame, 1000/30);
+            renderExportFrame(); // draw the first frame right away so the stream is never empty
         });
 
         function finishExport() { if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') state.mediaRecorder.stop(); }
 
+        // Containers/codecs to try, best first. isTypeSupported() alone is not
+        // trustworthy here, so each one is verified by an actual short recording.
+        const EXPORT_MIME_CANDIDATES = [
+            'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+            'video/mp4',
+            'video/webm;codecs=vp9,opus',
+            'video/webm;codecs=vp8,opus',
+            'video/webm'
+        ];
+
+        // Hands the recording back to the browser's own decoder:
+        //   'ok'      - real dimensions came back, the file plays;
+        //   'broken'  - it decoded the container and found no video, or failed outright
+        //               (a stalled H.264 recording reports 0x0 exactly like this);
+        //   'unknown' - no answer in time, so a real recording is kept rather than lost.
+        function inspectVideoBlob(blob) {
+            return new Promise(resolve => {
+                const v = document.createElement('video');
+                const url = URL.createObjectURL(blob);
+                let settled = false;
+                const finish = verdict => {
+                    if (settled) return;
+                    settled = true;
+                    clearTimeout(timer);
+                    v.onloadedmetadata = v.onerror = null;
+                    v.removeAttribute('src');
+                    URL.revokeObjectURL(url);
+                    resolve(verdict);
+                };
+                const timer = setTimeout(() => finish('unknown'), 8000);
+                v.preload = 'metadata';
+                v.muted = true;
+                v.onloadedmetadata = () => finish(v.videoWidth > 0 && v.videoHeight > 0 ? 'ok' : 'broken');
+                v.onerror = () => finish('broken');
+                v.src = url;
+            });
+        }
+
+        // Records a throwaway canvas for ~0.7s and reports whether the encoder
+        // actually produced data for this mime type. The probe runs at the exact
+        // export resolution on purpose: Chrome's H.264 encoder happily accepts
+        // 'video/mp4' and then returns zero bytes at 720x1280 on machines without a
+        // usable hardware encoder, while the same codec works at small sizes.
+        function probeRecorderMime(mime) {
+            return new Promise(resolve => {
+                if (!window.MediaRecorder || !MediaRecorder.isTypeSupported(mime)) return resolve(false);
+
+                const target = document.getElementById('export-canvas');
+                const probe = document.createElement('canvas');
+                probe.width = target.width; probe.height = target.height;
+                probe.style.cssText = 'position:fixed; left:0; top:0; width:' + (probe.width / 10) + 'px; height:' + (probe.height / 10) + 'px; opacity:0.01; pointer-events:none; z-index:9998;';
+                document.body.appendChild(probe);
+
+                const pctx = probe.getContext('2d');
+                const pStream = probe.captureStream(30);
+
+                // Probe the same track layout the export will use: a container may take
+                // video alone and still fail once an audio track is muxed in.
+                const probeTracks = [...pStream.getVideoTracks()];
+                let probeDest = null, probeOsc = null;
+                if (state.audioCtx) {
+                    try {
+                        probeDest = state.audioCtx.createMediaStreamDestination();
+                        probeOsc = state.audioCtx.createOscillator();
+                        const probeGain = state.audioCtx.createGain();
+                        probeGain.gain.value = 0.02;
+                        probeOsc.connect(probeGain); probeGain.connect(probeDest);
+                        probeOsc.start();
+                        probeTracks.push(...probeDest.stream.getAudioTracks());
+                    } catch (e) { probeDest = null; probeOsc = null; }
+                }
+
+                const probeChunks = [];
+                let bytes = 0, settled = false, drawTimer = null, rec = null;
+
+                const settle = ok => {
+                    if (settled) return;
+                    settled = true;
+                    clearInterval(drawTimer);
+                    try { if (rec && rec.state !== 'inactive') rec.stop(); } catch (e) {}
+                    if (probeOsc) { try { probeOsc.stop(); probeOsc.disconnect(); } catch (e) {} }
+                    if (probeDest) { probeDest.stream.getTracks().forEach(t => t.stop()); }
+                    pStream.getTracks().forEach(t => t.stop());
+                    probe.remove();
+                    resolve(ok);
+                };
+
+                try { rec = new MediaRecorder(new MediaStream(probeTracks), { mimeType: mime, videoBitsPerSecond: 8000000, audioBitsPerSecond: 128000 }); }
+                catch (e) { return settle(false); }
+
+                rec.ondataavailable = e => { if (e.data) { bytes += e.data.size; probeChunks.push(e.data); } };
+                rec.onerror = () => settle(false);
+                rec.onstop = async () => {
+                    // Byte count alone is not enough: a broken H.264 recording can still
+                    // be a couple of KB of unplayable header. Decode it for real.
+                    const probeBlob = new Blob(probeChunks, { type: mime.split(';')[0] });
+                    settle(probeBlob.size > 0 && (await inspectVideoBlob(probeBlob)) !== 'broken');
+                };
+
+                let n = 0;
+                drawTimer = setInterval(() => {
+                    pctx.fillStyle = (n++ % 2) ? '#ffffff' : '#101010';
+                    pctx.fillRect(0, 0, probe.width, probe.height);
+                    pctx.fillStyle = '#ff00ff';
+                    pctx.fillRect((n * 17) % probe.width, 20, 80, 80); // moving block, so frames really differ
+                }, 1000/30);
+
+                rec.start();
+                setTimeout(() => { try { if (rec.state !== 'inactive') rec.stop(); } catch (e) { settle(bytes > 0); } }, 700);
+                // Hard stop if the recorder never reports back. It must NOT fall back to
+                // "some bytes arrived", or an unplayable recording would pass unchecked;
+                // an inconclusive probe simply moves on to the next candidate.
+                setTimeout(() => settle(false), 6000);
+            });
+        }
+
+        let cachedExportMime = null;          // probing costs ~1s, so do it once per page load
+        const failedExportMimes = new Set();  // formats that produced an empty recording
+
+        async function pickRecorderMime() {
+            if (cachedExportMime) return cachedExportMime;
+            const usable = EXPORT_MIME_CANDIDATES.filter(m =>
+                !failedExportMimes.has(m) && window.MediaRecorder && MediaRecorder.isTypeSupported(m));
+
+            for (const mime of usable) {
+                if (await probeRecorderMime(mime)) { cachedExportMime = mime; return mime; }
+            }
+
+            // The probe is advisory, never a veto: if it could not confirm anything, still
+            // record with the best supported format. A bad export is caught and retried
+            // afterwards, which beats refusing to export at all. Not cached, so the next
+            // attempt can still find a format the probe approves of.
+            return usable.length ? usable[0] : null;
+        }
+
         function renderExportFrame() {
             if (!state.isExporting) return;
+            // The draw pass is isolated on purpose: a single failing frame must never
+            // kill the loop, otherwise the canvas freezes and the export comes out empty.
+            try { drawExportFrame(); } catch (e) { console.error('Export frame draw failed:', e); }
+            updateExportProgress();
+            if (state.isExporting) setTimeout(renderExportFrame, 1000/30);
+        }
+
+        function updateExportProgress() {
+            const pb = document.getElementById('export-progress-bar');
+            if (!pb) return;
+            const total = Math.max(state.media.length, 1);
+            const md = state.media[state.currentIndex];
+            const dur = md ? (md.duration || state.storyDuration || 5000) : 5000;
+            const frac = Math.max(0, Math.min((Date.now() - startTime) / dur, 1));
+            pb.style.width = `${Math.min(100, ((state.currentIndex + frac) / total) * 100)}%`;
+        }
+
+        function drawExportFrame() {
             const canvas = document.getElementById('export-canvas'); const ctx = canvas.getContext('2d'); const w = canvas.width; const h = canvas.height;
             const storyContainer = document.getElementById('story-container');
             const uiScale = (storyContainer && storyContainer.clientWidth > 0) ? (w / storyContainer.clientWidth) : 1.6;
@@ -1368,12 +1623,16 @@
                 }
             }
 
-            ctx.save(); ctx.beginPath(); ctx.arc(55, 75, 30, 0, Math.PI*2); ctx.clip(); if (currentAvatarImg.complete) ctx.drawImage(currentAvatarImg, 25, 45, 60, 60); ctx.restore();
+            const headerAvatarEl = document.getElementById('preview-avatar');
+            ctx.save(); ctx.beginPath(); ctx.arc(55, 75, 30, 0, Math.PI*2); ctx.clip();
+            if (headerAvatarEl && headerAvatarEl.complete && headerAvatarEl.naturalWidth > 0) { try { ctx.drawImage(headerAvatarEl, 25, 45, 60, 60); } catch(e) {} }
+            ctx.restore();
             ctx.beginPath(); ctx.arc(55, 75, 30, 0, Math.PI*2); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.stroke();
             ctx.fillStyle = 'white'; ctx.font = '600 24px "Inter", sans-serif'; ctx.fillText(document.getElementById('username-input').value, 100, 70);
             ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = '400 24px "Inter", sans-serif'; ctx.fillText(md ? (md.timeValue + md.timeUnit) : '9h', 100 + ctx.measureText(document.getElementById('username-input').value).width + 15, 70);
             if (md && md.showAudio) { 
-                ctx.fillStyle = 'white'; ctx.font = '400 20px "Inter", sans-serif'; ctx.drawImage(iconMusic, 98, 85, 16, 16); 
+                ctx.fillStyle = 'white'; ctx.font = '400 20px "Inter", sans-serif';
+                if (iconMusic.complete && iconMusic.naturalWidth > 0) ctx.drawImage(iconMusic, 98, 85, 16, 16);
                 ctx.fillText(truncateText(md.audioText, 32), 122, 100); 
             }
 
@@ -1406,7 +1665,6 @@
                     ctx.restore();
                 }
             }
-            setTimeout(renderExportFrame, 1000/30);
         }
 
         buildStoryUI();
